@@ -1,6 +1,6 @@
 {
-  "name": "DKA Pathway",
-  "short_name": "DKA",
+  "name": "DKA Check",
+  "short_name": "DKA Check",
   "description": "Bedside DKA pathway for ICU nurses.",
   "start_url": "./",
   "scope": "./",

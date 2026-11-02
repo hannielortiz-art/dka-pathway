@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>DKA Pathway</title>
+<title>DKA Check</title>
 <meta name="description" content="Bedside DKA pathway: weight-based insulin rates, hourly titration, dextrose fluids and electrolyte replacement, with prompts for when to call.">
-<meta name="application-name" content="DKA Pathway">
-<meta name="apple-mobile-web-app-title" content="DKA Pathway">
+<meta name="application-name" content="DKA Check">
+<meta name="apple-mobile-web-app-title" content="DKA Check">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -316,7 +316,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
 <div class="wrap">
   <header class="bar">
     <img src="apple-touch-icon.png" alt="">
-    <div><h1>DKA Pathway</h1><p>Hourly insulin, fluids and lytes</p></div>
+    <div><h1>DKA Check</h1><p>Hourly insulin, fluids and lytes</p></div>
     <span class="spacer"></span>
     <button type="button" id="printBtn">Print</button>
     <button type="button" id="clearBtn">Clear</button>
@@ -501,7 +501,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     </ol>
   </section>
 
-  <p class="foot">The flags are prompts, not orders. The provider's orders and the pathway decide what changes. Nothing is sent anywhere. Your numbers and tracking rows stay on this device so a closed app doesn't lose them; Clear wipes them. Version 2026-11-01.22. <span id="offlineState"></span></p>
+  <p class="foot">The flags are prompts, not orders. The provider's orders and the pathway decide what changes. Nothing is sent anywhere. Your numbers and tracking rows stay on this device so a closed app doesn't lose them; Clear wipes them. Version 2026-11-01.24. <span id="offlineState"></span></p>
 </div>
 
 <div id="prevBar" role="toolbar" aria-label="Print preview">
@@ -950,7 +950,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     }).join("");
     for (var i = 0; i < blanks; i++) tr += '<tr><td></td><td></td><td></td><td></td><td></td><td></td><td class="cs">LR · D5 ½NS · D10 &nbsp;____</td><td></td></tr>';
     var p1 = '<div class="pp">' +
-      '<div class="phd"><h1>DKA ICU Pathway · Bedside tracking</h1><div class="wr">Date ' + wi("") + " &nbsp; Room " + wi("", "s") + "</div></div>" +
+      '<div class="phd"><h1>DKA Check · Bedside tracking</h1><div class="wr">Date ' + wi("") + " &nbsp; Room " + wi("", "s") + "</div></div>" +
       '<div class="prates"><span>Weight ' + wi(w !== null ? r1(w) : "", "s") + " kg</span><span>Table row " + wi(b >= 0 ? BANDS[b] + "–" + (BANDS[b] + 9) : "") + " kg</span>" +
       "<span>LR started " + wi($("ivfStart").value, "s") + "</span><span>K ≥3.3 before insulin: Y · N</span></div>" +
       '<div class="prates"><span>Start (0.1) ' + wi(r10 ? r1(r10.v) : "", "s") + " units/hr</span><span>BG ≤200 (0.05) " + wi(r05 ? r1(r05.v) : "", "s") + " units/hr</span>" +
@@ -1116,7 +1116,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
   window.addEventListener("beforeprint", function () { document.querySelectorAll("#printSheet .pp").forEach(function (pg) { pg.style.zoom = ""; }); });
   window.addEventListener("afterprint", fitPreview);
   function sheetFile() {
-    return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>DKA bedside sheet</title><style>' +
+    return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>DKA Check bedside sheet</title><style>' +
       "@page{size:letter portrait;margin:0.45in}body{margin:0;background:#fff}.tip{font:14px/1.4 Arial,sans-serif;padding:10px 14px;background:#eee;margin:0}" +
       "@media screen{.sheet .pp{width:7.6in;margin:16px auto}}@media print{.tip{display:none}}" + $("sheetCss").textContent +
       '</style></head><body><p class="tip">To print: Ctrl+P (Cmd+P on a Mac), or Share → Print on a phone. Letter, portrait, scale 100%.</p><div class="sheet">' +
@@ -1125,7 +1125,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
   function stamp() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0") + " " + hhmm(d.getTime()); }
   function saveSheet() {
     buildPrint();
-    var name = "DKA bedside sheet " + stamp() + ".html", data = sheetFile();
+    var name = "DKA Check sheet " + stamp() + ".html", data = sheetFile();
     var viaBlob = function () {
       try {
         var url = URL.createObjectURL(new Blob([data], { type: "text/html" })), a = document.createElement("a");
@@ -1185,7 +1185,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     if (!("serviceWorker" in navigator)) { say("Offline use isn't available in this browser."); return; }
     say("Saving for offline use…");
     navigator.serviceWorker.register("sw.js").then(function () { return navigator.serviceWorker.ready; })
-      .then(function () { return caches.has("dka-pathway-2026-11-01.22"); })
+      .then(function () { return caches.has("dka-check-2026-11-01.24"); })
       .then(function (ok) { say(ok ? "Ready offline ✓" : "Saving for offline use… reopen the app in a few seconds."); })
       .catch(function () { say("Couldn't save for offline use. Open the app once more while online."); });
   })();

@@ -1,5 +1,5 @@
-// DKA Pathway offline cache. Change VERSION whenever any file changes, so phones fetch the update.
-const VERSION = "dka-pathway-2026-11-01.22";
+// DKA Check offline cache. Change VERSION whenever any file changes, so phones fetch the update.
+const VERSION = "dka-check-2026-11-01.24";
 const FILES = [
   "./",
   "index.html",

@@ -1,4 +1,4 @@
-# DKA Pathway
+# DKA Check
 
 A bedside DKA pathway for ICU nurses: weight-based insulin rates, hourly titration, dextrose fluid changes and K, Mg and Phos replacement, with prompts for when to call the provider or pharmacy.
 
