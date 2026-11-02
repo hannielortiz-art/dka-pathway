@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="DKA Check">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#5B1A2E">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -501,7 +501,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     </ol>
   </section>
 
-  <p class="foot">The flags are prompts, not orders. The provider's orders and the pathway decide what changes. Nothing is sent anywhere. Your numbers and tracking rows stay on this device so a closed app doesn't lose them; Clear wipes them. Version 2026-11-01.24. <span id="offlineState"></span></p>
+  <p class="foot">The flags are prompts, not orders. The provider's orders and the pathway decide what changes. Nothing is sent anywhere. Your numbers and tracking rows stay on this device so a closed app doesn't lose them; Clear wipes them. Version 2026-11-01.25. <span id="offlineState"></span></p>
 </div>
 
 <div id="prevBar" role="toolbar" aria-label="Print preview">
@@ -1185,7 +1185,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     if (!("serviceWorker" in navigator)) { say("Offline use isn't available in this browser."); return; }
     say("Saving for offline use…");
     navigator.serviceWorker.register("sw.js").then(function () { return navigator.serviceWorker.ready; })
-      .then(function () { return caches.has("dka-check-2026-11-01.24"); })
+      .then(function () { return caches.has("dka-check-2026-11-01.25"); })
       .then(function (ok) { say(ok ? "Ready offline ✓" : "Saving for offline use… reopen the app in a few seconds."); })
       .catch(function () { say("Couldn't save for offline use. Open the app once more while online."); });
   })();
