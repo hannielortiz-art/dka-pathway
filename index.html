@@ -1,0 +1,1189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DKA Pathway</title>
+<meta name="description" content="Bedside DKA pathway: weight-based insulin rates, hourly titration, dextrose fluids and electrolyte replacement, with prompts for when to call.">
+<meta name="application-name" content="DKA Pathway">
+<meta name="apple-mobile-web-app-title" content="DKA Pathway">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#5B1A2E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<style>
+@font-face { font-family: "Atkinson Hyperlegible"; font-weight: 400; font-style: normal; font-display: swap; src: url("atkinson-hyperlegible-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Atkinson Hyperlegible"; font-weight: 700; font-style: normal; font-display: swap; src: url("atkinson-hyperlegible-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Semi Condensed"; font-weight: 600; font-style: normal; font-display: swap; src: url("barlow-semi-condensed-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Semi Condensed"; font-weight: 700; font-style: normal; font-display: swap; src: url("barlow-semi-condensed-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 500; font-style: normal; font-display: swap; src: url("ibm-plex-mono-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 600; font-style: normal; font-display: swap; src: url("ibm-plex-mono-latin-600-normal.woff2") format("woff2"); }
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; }
+img { max-width: 100%; }
+</style>
+</head>
+<body>
+<style>
+/* Layout: one phone-width column. The two stop rules sit at the top, then the hourly insulin step, fluids and lytes, each with its readout in the same panel. */
+:root {
+  --brand: #5B1A2E;
+  --bg: #F6F3F4;
+  --panel: #FFFFFF;
+  --ink: #1F1418;
+  --muted: #6A5A60;
+  --line: #E2D8DB;
+  --field: #FAF7F8;
+  --accent: #5B1A2E;
+  --gold: #F2C14E;
+  --ok: #1D7A4E;   --ok-bg: #E4F3EB;
+  --watch: #8A5A00; --watch-bg: #FDF1D6;
+  --tell: #B42318; --tell-bg: #FDE7E5;
+  --do: #5B1A2E;   --do-bg: #F6E8EC;
+  --info-bg: #F1EDEE;
+  --font-display: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Atkinson Hyperlegible", -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #170E11; --panel: #22161A; --ink: #F1E8EB; --muted: #B8A5AC; --line: #3A2A30; --field: #1B1114;
+  --accent: #F0A9BC; --ok: #6FD3A0; --ok-bg: #12301F; --watch: #F2C14E; --watch-bg: #33280C;
+  --tell: #FF8A80; --tell-bg: #3A1614; --do: #F0A9BC; --do-bg: #3A1D27; --info-bg: #2A1D22; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #170E11; --panel: #22161A; --ink: #F1E8EB; --muted: #B8A5AC; --line: #3A2A30; --field: #1B1114;
+  --accent: #F0A9BC; --ok: #6FD3A0; --ok-bg: #12301F; --watch: #F2C14E; --watch-bg: #33280C;
+  --tell: #FF8A80; --tell-bg: #3A1614; --do: #F0A9BC; --do-bg: #3A1D27; --info-bg: #2A1D22; color-scheme: dark }
+
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.45; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--brand); }
+.wrap { max-width: 640px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 40px; display: grid; gap: 14px; }
+
+header.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--brand); color: #FFFFFF;
+  margin-left: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
+  padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); display: flex; align-items: center; gap: 12px; }
+header.bar img { width: 34px; height: 34px; border-radius: 8px; flex: none; }
+header.bar h1 { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: .02em; margin: 0; line-height: 1.1; }
+header.bar p { margin: 0; font-size: 12.5px; color: #E9CCD5; }
+header.bar .spacer { flex: 1; }
+header.bar button { background: transparent; color: #FFFFFF; border: 1px solid #A45A71; border-radius: 8px; padding: 7px 12px; font: 600 14px var(--font-body); cursor: pointer; }
+header.bar button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+.example { font-size: 13.5px; color: var(--watch); background: var(--watch-bg); border-radius: 8px; padding: 8px 12px; margin: 0; }
+
+/* The two rules that override everything else */
+.stop { background: var(--tell-bg); border: 2px solid var(--tell); border-radius: 12px; padding: 12px 14px; display: grid; gap: 8px; }
+.stop h2 { margin: 0; font-family: var(--font-display); font-size: 19px; color: var(--tell); letter-spacing: .02em; }
+.stop dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 0; font-size: 15px; }
+.stop dt { font-family: var(--font-num); font-weight: 600; color: var(--tell); white-space: nowrap; }
+.stop dd { margin: 0; min-width: 0; }
+
+.summary { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 8px; }
+.summary h2 { margin: 0; font-family: var(--font-display); font-size: 17px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.summary ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.summary li { display: flex; gap: 8px; align-items: baseline; font-size: 15px; }
+.summary .none { color: var(--ok); font-weight: 700; }
+
+section.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 12px; }
+section.panel > h2 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 18px; text-transform: uppercase; letter-spacing: .07em; color: var(--accent); display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
+section.panel > h2 small { font-family: var(--font-body); text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 13px; color: var(--muted); }
+
+.fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.field { display: grid; gap: 4px; min-width: 0; align-content: start; }
+.field label { font-size: 13px; color: var(--muted); font-weight: 700; }
+.field label .u { font-weight: 400; }
+.field input { width: 100%; box-sizing: border-box; font: 600 20px var(--font-num); font-variant-numeric: tabular-nums; color: var(--ink); background: var(--field);
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-height: 46px; }
+.field input:focus { outline: 3px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+.field.opt label::after { content: " · optional"; font-weight: 400; }
+
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--field); }
+.seg button { border: 0; background: transparent; color: var(--ink); font: 700 15px var(--font-body); padding: 9px 14px; min-height: 44px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--brand); color: #FFFFFF; }
+.seg button:focus-visible { outline: 3px solid var(--gold); outline-offset: -3px; }
+/* Insulin panel header: title left, weight tucked top right, away from the BG boxes */
+.phead { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.ptitle { display: grid; gap: 2px; min-width: 0; }
+.ptitle h2 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 18px; text-transform: uppercase; letter-spacing: .07em; color: var(--accent); }
+.wbox { display: grid; gap: 3px; justify-items: end; flex: none; }
+.wbox label { font-size: 12.5px; color: var(--muted); font-weight: 700; }
+.wbox label .u { font-weight: 400; }
+.wrow { display: flex; gap: 6px; align-items: stretch; }
+.wbox input { width: 78px; font: 600 17px var(--font-num); font-variant-numeric: tabular-nums; color: var(--ink); background: var(--field);
+  border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; min-height: 36px; text-align: right; }
+.wbox input:focus { outline: 3px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+.wbox .seg.sm button { min-height: 34px; padding: 3px 9px; }
+.fields.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.fields.three .field input { padding: 8px; }
+.fields.four { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.fields.four .field input { padding: 8px 6px; font-size: 18px; }
+@media (max-width: 400px) { .fields.four { gap: 6px; } .fields.four .field input { font-size: 17px; padding: 8px 5px; } }
+input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.fields.four .field > label { display: block; min-height: 0; line-height: 1.25; }
+.fields.four .field > label .u { display: block; font-size: 12px; }
+.fields.three .field > label { display: block; min-height: 0; line-height: 1.25; }
+.fields.three .field > label .u { display: block; font-size: 12px; }
+.fields.logrow { grid-template-columns: 96px minmax(0, 1fr); }
+.field > label { min-height: 34px; display: flex; align-items: center; gap: 4px; }
+.lblrow { display: flex; align-items: center; justify-content: space-between; gap: 6px; height: 34px; }
+.seg.sm button { padding: 3px 10px; min-height: 32px; font-size: 13.5px; }
+.wline { display: grid; gap: 6px; }
+.wline:empty { display: none; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.stat { background: var(--info-bg); border-radius: 8px; padding: 6px 9px; display: grid; gap: 1px; min-width: 0; }
+.stat .s { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.stat .v { font: 600 17px var(--font-num); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stat .v small { font: 400 12px var(--font-body); color: var(--muted); }
+.stat.main { background: var(--do-bg); box-shadow: inset 3px 0 0 var(--do); }
+.wline .cap { margin: 0; font-size: 13px; color: var(--muted); }
+.wline.off .cap { color: var(--watch); font-weight: 700; }
+.row { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.grp { display: flex; align-items: center; gap: 8px; }
+.lbl { font-size: 13px; color: var(--muted); font-weight: 700; }
+.check { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 700; min-height: 44px; }
+.check input { width: 22px; height: 22px; accent-color: var(--brand); flex: none; }
+
+.out { display: grid; gap: 8px; }
+.chk { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 10px 12px; border-radius: 10px; background: var(--info-bg); border-left: 5px solid var(--line); }
+.chk .name { font-weight: 700; font-size: 14.5px; min-width: 0; }
+.chk .val { font: 600 18px var(--font-num); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.chk .msg { grid-column: 1 / -1; font-size: 14px; color: var(--ink); }
+.chk.ok { background: var(--ok-bg); border-left-color: var(--ok); }
+.chk.watch { background: var(--watch-bg); border-left-color: var(--watch); }
+.chk.tell { background: var(--tell-bg); border-left-color: var(--tell); }
+.chk.do { background: var(--do-bg); border-left-color: var(--do); }
+.chk.big .val { font-size: 24px; }
+.pill { display: inline-block; font: 700 11.5px var(--font-body); text-transform: uppercase; letter-spacing: .06em; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+.pill.ok { color: var(--ok); border: 1.5px solid var(--ok); }
+.pill.watch { color: var(--watch); border: 1.5px solid var(--watch); }
+.pill.tell { color: var(--tell); border: 1.5px solid var(--tell); }
+.pill.do { color: var(--do); border: 1.5px solid var(--do); }
+.pill.info { color: var(--muted); border: 1.5px solid var(--muted); }
+.sub { font-size: 13px; color: var(--muted); }
+/* The answer to "what does the drip change to?" */
+.ratebox { border: 2px solid var(--do); background: var(--do-bg); border-radius: 12px; padding: 12px 14px; display: grid; gap: 8px; }
+.ratebox.ok { border-color: var(--ok); background: var(--ok-bg); }
+.ratebox.tell { border-color: var(--tell); background: var(--tell-bg); }
+.ratebox.info { border-color: var(--line); background: var(--info-bg); }
+.ratebox .k { font-family: var(--font-display); font-weight: 700; font-size: 15px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+.ratebox .top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 12px; }
+.ratebox .big { font: 600 34px/1.1 var(--font-num); font-variant-numeric: tabular-nums; }
+.ratebox .from { font: 600 15px var(--font-num); color: var(--muted); white-space: nowrap; }
+.ratebox .why { margin: 0; font-size: 15px; }
+.ladder { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; font-size: 13px; line-height: 1.3; }
+.ladder li { display: flex; justify-content: space-between; gap: 10px; padding: 3px 8px; border-radius: 6px; color: var(--muted); }
+.ladder li.on { background: var(--panel); color: var(--ink); font-weight: 700; box-shadow: inset 4px 0 0 currentColor; }
+
+.due { font-size: 14.5px; font-weight: 700; color: var(--muted); }
+.due.soon { color: var(--watch); } .due.late { color: var(--tell); }
+.bag { display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 8px; font-size: 14.5px; }
+.bag .top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 10px; }
+.bag .top b { font-family: var(--font-num); font-weight: 600; }
+.bag .bar { height: 10px; border-radius: 999px; background: var(--info-bg); border: 1px solid var(--line); overflow: hidden; }
+.bag .bar i { display: block; height: 100%; background: var(--do); }
+.bag.low .bar i { background: var(--watch); }
+.bag .sub2 { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 10px; font-size: 13.5px; color: var(--muted); }
+.bag .sub2 button { background: transparent; color: var(--accent); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font: 700 13.5px var(--font-body); cursor: pointer; min-height: 36px; }
+.ivfline { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px; border-top: 1px solid var(--line); padding-top: 8px; font-size: 14.5px; }
+.ivfline b { font-family: var(--font-num); font-weight: 600; }
+.btnrow { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.btn { background: var(--brand); color: #FFFFFF; border: 0; border-radius: 10px; padding: 11px 16px; min-height: 46px; font: 700 15px var(--font-body); cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--line); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.track h3 { margin: 0; font-size: 15.5px; }
+.tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--line); border-radius: 10px; }
+table.log { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+table.log th { background: var(--info-bg); font-size: 12px; font-weight: 700; text-align: left; padding: 6px 8px; line-height: 1.2; vertical-align: bottom; }
+table.log td { border-top: 1px solid var(--line); padding: 6px 8px; vertical-align: top; }
+table.log td.n { font-family: var(--font-num); font-weight: 600; white-space: nowrap; }
+table.log td.new { font-family: var(--font-num); font-weight: 600; color: var(--accent); white-space: nowrap; }
+table.log td.c { padding: 3px 6px; min-width: 170px; }
+table.log .cmtcell { width: 100%; box-sizing: border-box; font: 400 14px var(--font-body); color: var(--ink); background: transparent;
+  border: 1px dashed var(--line); border-radius: 6px; padding: 5px 7px; min-height: 32px; }
+table.log .cmtcell:focus { outline: 2px solid var(--accent); border-style: solid; background: var(--field); }
+table.log td.empty { color: var(--muted); font-family: var(--font-body); }
+.field input.txt { font: 400 16px var(--font-body); }
+
+details.box { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 0 14px; }
+details.box summary { cursor: pointer; padding: 14px 0; font-family: var(--font-display); font-weight: 700; font-size: 18px; text-transform: uppercase; letter-spacing: .07em; color: var(--accent); }
+details.inner { border-top: 1px solid var(--line); }
+details.inner summary { cursor: pointer; padding: 10px 0 2px; font-weight: 700; font-size: 14.5px; color: var(--accent); }
+details.inner .boxbody { padding: 8px 0 0; }
+details.box summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.boxbody { display: grid; gap: 10px; padding-bottom: 14px; font-size: 14.5px; }
+.boxbody h3 { margin: 6px 0 0; font-size: 15.5px; }
+.boxbody p { margin: 0; }
+.boxbody ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.tables { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+table.rates { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+table.rates caption { text-align: left; font-weight: 700; font-size: 13.5px; padding-bottom: 4px; }
+table.rates th, table.rates td { border: 1px solid var(--line); padding: 4px 6px; text-align: left; }
+table.rates th { background: var(--info-bg); font-size: 12.5px; }
+table.rates tr.hit td { background: var(--do-bg); font-weight: 700; }
+table.rates td:last-child { font-family: var(--font-num); text-align: right; }
+
+.sources { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 8px; }
+.sources h2 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 18px; text-transform: uppercase; letter-spacing: .07em; color: var(--accent); }
+.sources ol { margin: 0; padding-left: 22px; display: grid; gap: 8px; font-size: 13.5px; }
+.sources li { min-width: 0; overflow-wrap: anywhere; }
+.sources .use { display: block; color: var(--muted); font-size: 12.5px; }
+.sources a { color: var(--accent); }
+.note { font-size: 13px; color: var(--muted); margin: 0; }
+.foot { font-size: 13px; color: var(--muted); }
+@media (max-width: 420px) { .tables { grid-template-columns: 1fr; } }
+
+/* Phone: one column, in bedside order (stop rules, prompts, insulin, fluids, lytes, gap) */
+.cols, .colA, .colB { display: contents; }
+.stop { order: 1; } .summary { order: 2; } .colA > section { order: 3; }
+section[aria-labelledby="h-fl"] { order: 4; } section[aria-labelledby="h-ly"] { order: 5; } section[aria-labelledby="h-res"] { order: 6; }
+.wrap > details, .wrap > .sources, .wrap > .foot { order: 10; }
+
+/* Desktop: insulin drip and its log on the left, everything else on the right */
+@media (min-width: 980px) {
+  .wrap { max-width: 1280px; padding-left: 24px; padding-right: 24px; }
+  header.bar { margin-left: -24px; margin-right: -24px; padding-left: 24px; padding-right: 24px; }
+  .cols { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; order: 1; }
+  .colA, .colB { display: grid; gap: 14px; align-content: start; }
+  .colA > section, .colB > * { order: 0; }
+  table.log { min-width: 0; }
+  .colB .fields { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+  .wrap > details { max-width: none; }
+}
+@media (min-width: 1400px) { .wrap { max-width: 1360px; } }
+@media (prefers-reduced-motion: no-preference) { .chk { transition: background-color .2s ease; } }
+
+/* ---- Print: a 2-page black-and-white bedside sheet built from what's entered (see buildPrint) */
+#printSheet, #prevBar { display: none; }
+@media print {
+  @page { size: letter portrait; margin: 0.45in; }
+  html, body { background: #FFFFFF !important; color: #000000 !important; }
+  body::before { display: none !important; }
+  body > *:not(#printSheet) { display: none !important; }
+  #printSheet { display: block !important; padding: 0 !important; overflow: visible !important; }
+  #printSheet .pp { width: auto !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; }
+}
+/* On-screen preview of the same sheet */
+body.previewing .wrap { display: none; }
+body.previewing #prevBar { display: flex; position: sticky; top: 0; z-index: 20; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 16px; background: var(--brand); color: #FFFFFF; }
+#prevBar button { background: #FFFFFF; color: var(--brand); border: 0; border-radius: 8px; padding: 9px 14px; font: 700 14.5px var(--font-body); cursor: pointer; min-height: 40px; }
+#prevBar button.ghost { background: transparent; color: #FFFFFF; border: 1px solid #A45A71; }
+#prevBar .msg { flex-basis: 100%; font-size: 13.5px; color: #F3DCE3; }
+#prevBar .msg:empty { display: none; }
+body.previewing #printSheet { display: block; overflow-x: auto; padding: 16px 0 32px; background: #8E8487; }
+body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin: 0 auto 16px; padding: 0.45in; background: #FFFFFF !important; box-shadow: 0 2px 10px rgba(0,0,0,.35); }
+</style>
+<style id="sheetCss">
+.sheet { color: #000000; font: 10pt/1.3 "Atkinson Hyperlegible", Arial, sans-serif; }
+.sheet * { color: #000000 !important; background: transparent !important; box-shadow: none !important; }
+.sheet .pp { break-after: page; page-break-after: always; }
+.sheet .pp:last-child { break-after: auto; page-break-after: auto; }
+.sheet .pp h1 { font: 700 16pt "Barlow Semi Condensed", Arial, sans-serif; letter-spacing: .03em; margin: 0; text-transform: uppercase; }
+.sheet .pp h2 { font: 700 11.5pt "Barlow Semi Condensed", Arial, sans-serif; letter-spacing: .05em; text-transform: uppercase; margin: 10pt 0 4pt; }
+.sheet .phd { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2pt solid #000; padding-bottom: 4pt; }
+.sheet .phd .wr { font-size: 11pt; }
+.sheet .wi { display: inline-block; min-width: 0.8in; border-bottom: 1pt solid #000; text-align: center; font: 600 11pt "IBM Plex Mono", monospace; }
+.sheet .wi.s { min-width: 0.55in; }
+.sheet .prates { display: flex; flex-wrap: wrap; gap: 4pt 16pt; margin-top: 7pt; font-size: 10.5pt; align-items: baseline; }
+.sheet .prules { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14pt; border: 1pt solid #000; padding: 5pt 8pt; margin-top: 7pt; font-size: 9pt; }
+.sheet .prules p { margin: 0 0 2pt; }
+.sheet .prules .stopr { grid-column: 1 / -1; border-top: 1pt solid #000; margin-top: 3pt; padding-top: 3pt; font-weight: 700; }
+.sheet table.pt { width: 100%; border-collapse: collapse; margin-top: 7pt; table-layout: fixed; }
+.sheet table.pt th { border: 1.2pt solid #000; font-size: 8.5pt; line-height: 1.15; padding: 3pt 4pt; text-align: left; vertical-align: bottom; }
+.sheet table.pt td { border: 1pt solid #000; height: 0.36in; padding: 2pt 4pt; font: 600 10.5pt "IBM Plex Mono", monospace; vertical-align: middle; overflow: hidden; }
+.sheet table.pt td.cs { font: 400 8pt "Atkinson Hyperlegible", Arial, sans-serif; letter-spacing: .02em; white-space: nowrap; }
+.sheet table.pt td.cm { font: 400 9pt "Atkinson Hyperlegible", Arial, sans-serif; }
+.sheet table.ref { border-collapse: collapse; font-size: 9pt; width: 100%; }
+.sheet table.ref th, .sheet table.ref td { border: 1pt solid #000; padding: 2pt 5pt; text-align: left; }
+.sheet .pcols { display: grid; grid-template-columns: 1fr 1fr; gap: 12pt; }
+.sheet .pcols3 { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 10pt; }
+.sheet .pp ul { margin: 0; padding-left: 14pt; font-size: 9.5pt; }
+.sheet .pfoot { margin-top: 8pt; font-size: 8pt; }
+</style>
+
+<div class="wrap">
+  <header class="bar">
+    <img src="apple-touch-icon.png" alt="">
+    <div><h1>DKA Pathway</h1><p>Hourly insulin, fluids and lytes</p></div>
+    <span class="spacer"></span>
+    <button type="button" id="printBtn">Print</button>
+    <button type="button" id="clearBtn">Clear</button>
+  </header>
+
+  <p class="example" id="exampleNote">Example values from a made-up patient are filled in. Tap Clear to start your own.</p>
+
+  <div class="cols">
+  <div class="colA">
+  <section class="panel" aria-labelledby="h-ins">
+    <div class="phead">
+      <div class="ptitle"><h2 id="h-ins">Insulin drip</h2><span class="sub">100 units/100 mL: units/hr = mL/hr</span></div>
+      <div class="wbox">
+        <label for="wt">Weight <span class="u" id="wtUnit">kg</span></label>
+        <div class="wrow"><input id="wt" type="number" inputmode="decimal">
+          <span class="seg sm" role="group" aria-label="Weight units"><button type="button" id="uKg" aria-pressed="true">kg</button><button type="button" id="uLb" aria-pressed="false">lb</button></span></div>
+      </div>
+    </div>
+    <div class="wline" id="outWt"></div>
+    <div class="fields four">
+      <div class="field"><label for="tm">Time <span class="u">24 h</span></label><input id="tm" type="text" inputmode="numeric" maxlength="4" placeholder="now" autocomplete="off"></div>
+      <div class="field"><label for="bgLast">Last BG <span class="u">mg/dL</span></label><input id="bgLast" type="number" inputmode="numeric"></div>
+      <div class="field"><label for="bgNow">BG now <span class="u">mg/dL</span></label><input id="bgNow" type="number" inputmode="numeric"></div>
+      <div class="field"><label for="rate">Rate now <span class="u">units/hr</span></label><input id="rate" type="number" inputmode="decimal"></div>
+    </div>
+    <div class="out" id="outIns" aria-live="polite"></div>
+    <details class="inner" id="bagEdit">
+      <summary>Insulin bag details: hung in the ED, or check against the pump</summary>
+      <div class="boxbody">
+        <div class="fields three">
+          <div class="field"><label for="bagNo">Bag # <span class="u">this bag</span></label><input id="bagNo" type="number" inputmode="numeric" min="1" placeholder="1"></div>
+          <div class="field"><label for="bagHung">Hung at <span class="u">24 h</span></label><input id="bagHung" type="text" inputmode="numeric" maxlength="4" placeholder="1st BG" autocomplete="off"></div>
+          <div class="field"><label for="bagPump">Pump: vol infused <span class="u">mL, read now</span></label><input id="bagPump" type="number" inputmode="decimal"></div>
+        </div>
+        <label class="check" for="bagYday"><input type="checkbox" id="bagYday"> Hung yesterday</label>
+        <p class="note">Rates logged here only start at the first BG, so time in the ED isn't counted unless you enter the pump's volume infused. The pump number wins: the app adds the logged rate from the moment you enter it.</p>
+      </div>
+    </details>
+    <label class="check" for="phase2"><input type="checkbox" id="phase2"> BG has already reached 200 or less on this drip</label>
+    <div class="fields">
+      <div class="field opt" style="grid-column: 1 / -1"><label for="cmt">Comment</label><input id="cmt" class="txt" type="text" maxlength="80" placeholder="e.g. lab value, meter read HI" autocomplete="off"></div>
+    </div>
+    <div class="btnrow">
+      <button type="button" class="btn" id="nextBtn">Next hour →</button>
+      <span class="due" id="due"></span>
+    </div>
+    <div class="track">
+      <h3>Bedside tracking tool</h3>
+      <p class="note">Same columns as the paper sheet, newest row first, so you can copy each hour across. Tap a comment to edit it.</p>
+    </div>
+    <div class="tablewrap"><table class="log" id="log">
+      <thead><tr><th>Date</th><th>Time</th><th>BG<br>mg/dL</th><th>Change<br>from last</th><th>Current<br>units/hr</th><th>New<br>units/hr</th><th>IVF</th><th>Comments</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <div class="btnrow"><button type="button" class="btn ghost" id="undoBtn">Undo last row</button></div>
+    <p class="note">Kept on this device only. No names or MRNs in comments. Clear wipes it.</p>
+    <div class="track"><h3>Insulin bags</h3><p class="note">A row is added each time you tap New bag hung. mL are estimates from the logged rates (or the pump reading, when entered).</p></div>
+    <div class="tablewrap"><table class="log" id="bagLog">
+      <thead><tr><th>Bag</th><th>Hung</th><th>Ended</th><th>Ran</th><th>Infused<br>mL</th><th>Pump<br>reading</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+  </div>
+  <div class="colB">
+  <div class="stop" id="stopBox" role="alert" hidden>
+    <h2>Act now</h2>
+    <dl id="stopList"></dl>
+  </div>
+
+  <div class="summary" aria-live="polite">
+    <h2>Prompts for the provider and pharmacy</h2>
+    <ul id="summaryList"></ul>
+  </div>
+
+  <section class="panel" aria-labelledby="h-fl">
+    <h2 id="h-fl">IV fluids <small>follows BG now and the clock</small></h2>
+    <div class="fields" id="flPlanBox">
+      <div class="field"><label for="ivfStart">LR started <span class="u">24 h</span></label><input id="ivfStart" type="text" inputmode="numeric" maxlength="4" placeholder="1st BG" autocomplete="off"></div>
+    </div>
+    <div id="flManual">
+    <div class="row">
+      <span class="grp"><span class="lbl">Running</span>
+      <span class="seg" role="group" aria-label="Fluid running now">
+        <button type="button" id="fLR" aria-pressed="true">LR</button>
+        <button type="button" id="fD5" aria-pressed="false">D5 ½NS</button>
+        <button type="button" id="fD10" aria-pressed="false">D10</button>
+      </span></span>
+    </div>
+    <div class="fields">
+      <div class="field"><label for="flRate">Rate now <span class="u">mL/hr</span></label><input id="flRate" type="number" inputmode="numeric"></div>
+    </div>
+    </div>
+    <div class="out" id="outFl"></div>
+    <p class="note" id="flNote"></p>
+  </section>
+
+  <section class="panel" aria-labelledby="h-ly">
+    <h2 id="h-ly">Electrolytes <small>replacement per the pathway</small></h2>
+    <div class="fields">
+      <div class="field"><label for="k">K <span class="u">mEq/L</span></label><input id="k" type="number" inputmode="decimal" step="0.1"></div>
+      <div class="field"><label for="scr">SrCr <span class="u">mg/dL</span></label><input id="scr" type="number" inputmode="decimal" step="0.1"></div>
+      <div class="field"><label for="mg">Mg <span class="u">mg/dL</span></label><input id="mg" type="number" inputmode="decimal" step="0.1"></div>
+      <div class="field"><label for="phos">Phos <span class="u">mg/dL</span></label><input id="phos" type="number" inputmode="decimal" step="0.1"></div>
+    </div>
+    <div class="out" id="outLy"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-res">
+    <h2 id="h-res">Gap and resolution <small>check with each BMP</small></h2>
+    <div class="fields three">
+      <div class="field"><label for="na">Na <span class="u">mEq/L</span></label><input id="na" type="number" inputmode="numeric"></div>
+      <div class="field"><label for="cl">Cl <span class="u">mEq/L</span></label><input id="cl" type="number" inputmode="numeric"></div>
+      <div class="field"><label for="hco3">HCO₃ <span class="u">mEq/L</span></label><input id="hco3" type="number" inputmode="decimal"></div>
+      <div class="field"><label for="vph">Venous pH <span class="u">optional</span></label><input id="vph" type="number" inputmode="decimal" step="0.01"></div>
+    </div>
+    <div class="out" id="outRes"></div>
+    <details class="inner">
+      <summary>What counts as resolved, and the overlap</summary>
+      <div class="boxbody">
+        <p><b>Most order sets (2009 ADA criteria):</b> BG under 200 plus two of these: anion gap 12 or less (closed), bicarbonate 15 or higher, venous pH above 7.3. The closed gap is the one most teams watch.</p>
+        <p><b>2024 consensus:</b> ketones (β-hydroxybutyrate) under 0.6 mmol/L and venous pH 7.3 or higher or bicarbonate 18 or higher. A closed gap is the stand-in when ketones aren't checked. Ask which one Reston's order uses.</p>
+        <p><b>Gap = Na − (Cl + HCO₃).</b> If Expanse reports the gap, use the lab's number and its normal range; some labs add K or use a different cutoff.</p>
+        <p><b>The overlap:</b> the pathway keeps the 0.05 rate "until converting to subcutaneous insulin." When resolved, the provider orders SQ basal insulin, given at least 1–2 hours before the drip stops. Without the overlap, DKA can come back within hours. Ask about mealtime insulin and BG checks after the drip is off.</p>
+      </div>
+    </details>
+  </section>
+  </div>
+  </div>
+
+  <details class="box">
+    <summary>Where this 2021 pathway differs from 2024</summary>
+    <div class="boxbody">
+      <p>The pathway sheet was last updated 9/22/21. The 2024 consensus came out later. Follow the pathway and your orders; these are worth a question if something doesn't add up, or if a newer order set is in Expanse.</p>
+      <ul>
+        <li><b>Potassium:</b> the consensus holds insulin until K is above 3.5; the pathway uses 3.3.</li>
+        <li><b>Dextrose:</b> the consensus adds D5 or D10 once BG is under 250; the pathway switches at 200.</li>
+        <li><b>Bicarbonate:</b> the consensus considers it only if pH is under 7.0; the pathway doesn't mention it.</li>
+        <li><b>Starting dose:</b> both use 0.1 units/kg/hr, with or without a bolus.</li>
+        <li><b>The paper tracking tool</b> is shared with the ICU insulin infusion protocol. Its IVF column says to switch to D5 ½NS at BG 300; the DKA pathway switches at 200.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="box" id="pwBox">
+    <summary>The pathway at a glance</summary>
+    <div class="boxbody">
+      <h3>BG over 200</h3>
+      <ul>
+        <li><b>Fluids:</b> LR 1000 mL every hour × 2, then LR 250 mL/hr.</li>
+        <li><b>Insulin:</b> only once K is 3.3 or higher. Bolus 0.15 units/kg IV × 1 or no bolus, per the order. Drip at 0.1 units/kg/hr from the table.</li>
+        <li><b>Hourly:</b> BG fell 49 or less → double the rate (over 20 units/hr: call MD). Fell 50–90 → same rate. Fell more than 90 → cut the rate by 50% (minimum 3 units/hr).</li>
+      </ul>
+      <h3>BG 200 or less</h3>
+      <ul>
+        <li><b>Insulin:</b> drop to 0.05 units/kg/hr from the table and keep it there until SQ insulin.</li>
+        <li><b>Fluids:</b> change to D5 ½NS at 150 mL/hr. Hourly: BG under 130 → up 50 mL/hr; 130–200 → same; over 200 → down 50 mL/hr.</li>
+        <li><b>D5 ½NS reaches 300 mL/hr or more:</b> change to D10 at 150 mL/hr, same adjustments.</li>
+        <li><b>Fluid rate under 100 mL/hr:</b> call MD.</li>
+      </ul>
+      <h3>Electrolytes</h3>
+      <ul>
+        <li><b>KCl (SrCr 3 or less):</b> K under 3.3 → hold insulin, 20 mEq × 4. 3.3–3.9 → × 3. 4–4.4 → × 2. 4.5–5 → × 1. Over 5 → no KCl, recheck K in 2 hours. Bags are 10 mEq/100 mL at 200 mL/hr: each bag runs 30 minutes (20 mEq/hr), so one 20 mEq dose is 2 bags over 1 hour.</li>
+        <li><b>Magnesium:</b> 1.6 or less → 1 g × 4. 1.6–1.9 → 1 g × 2. Rider 1 g/100 mL at 200 mL/hr runs in 30 minutes, which is 2 g/hr, though the sheet also says "1 gram/hr." Ask pharmacy which rate is right.</li>
+        <li><b>Phosphorus:</b> under 2 → 15 mmol × 1 (K-Phos 15 mmol/250 mL at 62.5 mL/hr, over 4 hours).</li>
+      </ul>
+      <div class="tables">
+        <table class="rates" id="t1"><caption>0.1 units/kg/hr</caption><thead><tr><th>Weight</th><th>mL/hr</th></tr></thead><tbody></tbody></table>
+        <table class="rates" id="t05"><caption>0.05 units/kg/hr</caption><thead><tr><th>Weight</th><th>mL/hr</th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </details>
+
+  <section class="sources" aria-labelledby="h-src">
+    <h2 id="h-src">Sources</h2>
+    <p class="note">Last reviewed November 1, 2026.</p>
+    <ol>
+      <li>Reston Hospital Center, Department of Pharmacy. DKA ICU Pathway. 4 pages. Last updated September 22, 2021.<span class="use">Every rate, threshold and table in the panels above</span></li>
+      <li>Umpierrez GE, Davis GM, ElSayed NA, et al. Hyperglycemic crises in adults with diabetes: a consensus report. <i>Diabetes Care</i>. 2024;47(8):1257-1275. <a href="https://doi.org/10.2337/dci24-0032" target="_blank" rel="noopener">doi:10.2337/dci24-0032</a><span class="use">Ketone-based resolution, basal overlap, and where the pathway differs</span></li>
+      <li>Kitabchi AE, Umpierrez GE, Miles JM, Fisher JN. Hyperglycemic crises in adult patients with diabetes. <i>Diabetes Care</i>. 2009;32(7):1335-1343. <a href="https://doi.org/10.2337/dc09-9032" target="_blank" rel="noopener">doi:10.2337/dc09-9032</a><span class="use">Resolution: BG under 200 plus two of gap ≤12, HCO₃ ≥15, venous pH above 7.3</span></li>
+      <li>Rodriguez Alvarez P, San Martin VT, Morey-Vargas OL. Hyperglycemic crises in adults: a look at the 2024 consensus report. <i>Cleve Clin J Med</i>. 2025;92(3):152-158. <a href="https://doi.org/10.3949/ccjm.92a.24089" target="_blank" rel="noopener">doi:10.3949/ccjm.92a.24089</a><span class="use">Summary of the consensus numbers used here</span></li>
+      <li>Potassium Phosphates Injection, USP [prescribing information]. Amneal Pharmaceuticals; 2024.<span class="use">3 mmol phosphorus and 4.4 mEq potassium per mL: 15 mmol carries about 22 mEq K</span></li>
+    </ol>
+  </section>
+
+  <p class="foot">The flags are prompts, not orders. The provider's orders and the pathway decide what changes. Nothing is sent anywhere. Your numbers and tracking rows stay on this device so a closed app doesn't lose them; Clear wipes them. Version 2026-11-01.21. <span id="offlineState"></span></p>
+</div>
+
+<div id="prevBar" role="toolbar" aria-label="Print preview">
+  <button type="button" id="prPrint">Print</button>
+  <button type="button" id="prSave">Save as file</button>
+  <button type="button" class="ghost" id="prClose">Back to app</button>
+  <span class="msg" id="prMsg"></span>
+</div>
+<section id="printSheet" class="sheet" aria-label="Printable sheet"></section>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { unit: "kg", fluid: "LR", log: [] };
+  try { var sv = JSON.parse(localStorage.getItem("dka-log") || "[]"); if (Array.isArray(sv)) state.log = sv; } catch (e) {}
+  function saveLog() { try { localStorage.setItem("dka-log", JSON.stringify(state.log)); } catch (e) {} }
+  // Current insulin bag: number, when it was hung (can be yesterday, in the ED), and an optional pump "volume infused" reading
+  state.bag = { no: null, hung: null, pump: null }; state.bagHist = [];
+  try { var sb = JSON.parse(localStorage.getItem("dka-bag") || "null"); if (sb && sb.cur) { state.bag = sb.cur; state.bagHist = sb.hist || []; } } catch (e) {}
+  function saveBags() { try { localStorage.setItem("dka-bag", JSON.stringify({ cur: state.bag, hist: state.bagHist })); } catch (e) {} }
+  var EXAMPLE = { wt: 72, bgLast: 412, bgNow: 377, rate: 7, flRate: 250, k: 3.8, scr: 1.4, mg: 1.7, phos: 1.8 };
+  var IDS = ["wt", "bgLast", "bgNow", "rate", "flRate", "k", "scr", "mg", "phos", "na", "cl", "hco3", "vph", "ivfStart"];
+  var BANDS = [45, 55, 65, 75, 85, 95, 105, 115, 125, 135, 145];   // pathway table: 45-54 kg ... 145-154 kg
+  var LABEL = { ok: "OK", watch: "Watch", tell: "Call provider", do: "Pathway step", info: "Info" };
+
+  function num(id) { var v = $(id).value.trim(); if (v === "") return null; var n = parseFloat(v); return isFinite(n) ? n : null; }
+  function r1(n) { return String(Math.round(n * 10) / 10); }
+  function esc(s) { return String(s).replace(/[&<>]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]; }); }
+  function card(level, name, val, msg, big) {
+    return '<div class="chk ' + level + (big ? " big" : "") + '"><span class="name">' + esc(name) + ' <span class="pill ' + level + '">' + LABEL[level] + '</span></span>' +
+      '<span class="val">' + esc(val) + '</span><span class="msg">' + msg + '</span></div>';
+  }
+  function kg() { var w = num("wt"); if (w === null || w <= 0) return null; return state.unit === "lb" ? w / 2.20462 : w; }
+  function band(w) {   // index into BANDS, or -1 outside the table. Rows are whole kg, so round first (54.6 → 55 → 55–64 row).
+    if (w === null) return -1;
+    var kgR = Math.round(w);
+    if (kgR < 45 || kgR > 154) return -1;
+    return Math.floor((kgR - 45) / 10);
+  }
+  function rateFor(w, per) {   // per = 0.1 or 0.05; table value, or plain math outside the table
+    var b = band(w);
+    if (b < 0) return { v: Math.round(Math.round(w) * per * 10) / 10, table: false };
+    return { v: (b + 5) * (per === 0.1 ? 1 : 0.5), table: true };
+  }
+
+  // ---- clock: every row keeps a timestamp so the app knows how long fluids and the drip have run
+  function hhmm(ts) { var d = new Date(ts); return String(d.getHours()).padStart(2, "0") + String(d.getMinutes()).padStart(2, "0"); }
+  function parseHHMM(str, ref) {   // "0630" -> timestamp on the day of ref (or the day before if that would be >30 min in the future)
+    var v = String(str || "").replace(/\D/g, ""); if (v.length === 3) v = "0" + v;
+    if (v.length !== 4) return null;
+    var h = +v.slice(0, 2), m = +v.slice(2); if (h > 23 || m > 59) return null;
+    var d = new Date(ref); d.setHours(h, m, 0, 0);
+    if (d.getTime() - ref > 30 * 60000) d.setDate(d.getDate() - 1);
+    return d.getTime();
+  }
+  function rowTs(r) {
+    if (r.ts) return r.ts;
+    var md = /^(\d\d)\/(\d\d)$/.exec(r.d || ""), t = parseHHMM(r.t, Date.now());
+    if (!md || t === null) return null;
+    var d = new Date(t); d.setMonth(+md[1] - 1, +md[2]); return d.getTime();
+  }
+  function readingTs() { var t = parseHHMM($("tm").value, Date.now()); return t === null ? Date.now() : t; }
+  function lrStartTs() {   // when the LR boluses began: the field if filled, else the first logged BG, else this reading
+    var first = state.log.length ? rowTs(state.log[state.log.length - 1]) : null, ref = first || readingTs();
+    var f = parseHHMM($("ivfStart").value, ref + 30 * 60000);
+    return f !== null ? f : ref;
+  }
+  function lrPlan(at) {   // pathway: LR 1000 mL every hour x 2, then LR 250 mL/hr
+    var st = lrStartTs(), h = (at - st) / 3600000;
+    if (h < 0) h = 0;
+    if (h < 1) return { label: "LR 1000 mL/hr", short: "LR bolus 1/2 (1000 mL/hr)", rate: 1000, n: 1, until: st + 3600000, st: st };
+    if (h < 2) return { label: "LR 1000 mL/hr", short: "LR bolus 2/2 (1000 mL/hr)", rate: 1000, n: 2, until: st + 7200000, st: st };
+    return { label: "LR 250 mL/hr", short: "LR 250 mL/hr", rate: 250, n: 0, until: null, st: st };
+  }
+
+  function bgPair() {
+    var last = num("bgLast"), now = num("bgNow");
+    if (now === null && last !== null && !state.log.length) return { last: null, now: last, fromLast: true };
+    return { last: last, now: now, fromLast: false };
+  }
+
+  function insulinStep() {
+    // Returns {phase, newRate, level, name, val, msg, flags[]}
+    var bp = bgPair(), last = bp.last, now = bp.now, rate = num("rate"), k = num("k"), w = kg();
+    var res = { flags: [], newRate: null };
+    var p2 = $("phase2").checked || (now !== null && now <= 200);
+    res.phase2 = p2;
+    if (now !== null && now < 70) res.flags.push({ level: "tell", text: "BG " + now + ": D50 50 mL IV push, call the physician, recheck q15 min" });
+    if (k !== null && k < 3.3) {
+      res.level = "tell"; res.name = "Insulin"; res.val = "HOLD"; res.tier = "hold";
+      res.msg = "K is " + r1(k) + " (under 3.3). Hold insulin and replace K (Electrolytes below). Insulin starts once K is 3.3 or higher.";
+      res.flags.push({ level: "tell", text: "K " + r1(k) + ": hold insulin" });
+      return res;
+    }
+    if (p2) {
+      var target = w !== null ? rateFor(w, 0.05) : null;
+      res.name = "BG 200 or less: 0.05 units/kg/hr"; res.tier = "p2";
+      if (!target) { res.level = "do"; res.val = "—"; res.msg = "Enter weight to get the 0.05 rate from the table. Keep that rate until SQ insulin; the fluids do the adjusting now."; return res; }
+      res.newRate = target.v; res.val = r1(target.v) + " units/hr";
+      var parts = [];
+      res.level = rate !== null && Math.abs(rate - target.v) > 0.01 ? "do" : "ok";
+      parts.push("BG " + (now !== null ? now + " " : "") + "is in the 200-or-less phase: 0.05 units/kg/hr from the table.");
+      parts.push("Hold this rate until SQ insulin; adjust the dextrose fluid hourly instead.");
+      if (!$("phase2").checked && now !== null && now <= 200) parts.push("Also change fluids to D5 ½NS at 150 mL/hr.");
+      if (rate === null && !state.log.length) { res.level = "watch"; parts.unshift("The pathway gives no start rate when the first BG is already 200 or less. Ask the provider; this is the 0.05 rate it uses at that point.");
+        res.flags.push({ level: "watch", text: "First BG 200 or less: ask the provider for the start rate" }); }
+      if (!target.table) { parts.push("Weight is outside the pathway table (45–154 kg): this is 0.05 × weight. Confirm with pharmacy."); res.flags.push({ level: "watch", text: "Weight outside the table: confirm the rate with pharmacy" }); }
+      res.msg = parts.join(" ");
+      return res;
+    }
+    res.name = "Next rate (BG over 200)";
+    var hiNote = now !== null && now > 600 ? " Over 600 is past the meter's range: use the lab glucose." : "";
+    if (now !== null && rate === null) {   // first BG: the drip isn't running yet
+      res.tier = "start"; res.name = "Start the drip";
+      if (w === null) { res.level = "info"; res.val = "—"; res.msg = "First BG: enter weight above to get the start rate (0.1 units/kg/hr from the table). Tap Log first BG to save this BG now." + hiNote; return res; }
+      var st = rateFor(w, 0.1);
+      res.level = "do"; res.newRate = st.v; res.val = r1(st.v) + " units/hr";
+      res.msg = "First BG " + now + ": start at the table rate for " + Math.round(w) + " kg. Bolus 0.15 units/kg IV only if ordered." +
+        (k === null ? " Check K first: insulin starts only when K is 3.3 or higher." : "") + hiNote;
+      if (!st.table) res.flags.push({ level: "watch", text: "Weight outside the table: confirm the rate with pharmacy" });
+      return res;
+    }
+    if (last === null && now !== null && rate !== null) {   // first BG on a drip that's already running: the baseline
+      res.tier = "start"; res.name = "First BG"; res.level = "ok"; res.newRate = rate; res.val = r1(rate) + " units/hr";
+      var stR = w !== null ? rateFor(w, 0.1) : null;
+      res.msg = "First BG " + now + " is the baseline. The drip stays at " + r1(rate) + " units/hr; the next BG decides the first change." +
+        (stR && Math.abs(stR.v - rate) > 0.01 ? " Note: the table start rate for " + Math.round(w) + " kg is " + r1(stR.v) + " units/hr." : "") +
+        hiNote;
+      if (stR && Math.abs(stR.v - rate) > 0.01) { res.level = "watch"; }
+      return res;
+    }
+    if (last === null || now === null || rate === null) {
+      res.level = "info"; res.val = "—";
+      var miss = [last === null ? "last BG" : null, now === null ? "BG now" : null, rate === null ? "the rate running now" : null].filter(Boolean);
+      res.msg = "Enter " + miss.join(", ").replace(/, ([^,]*)$/, " and $1") + " and the new rate shows here." +
+        (rate === null && w !== null ? " Just starting? The 0.1 start rate for this weight is " + r1(rateFor(w, 0.1).v) + " units/hr." : "");
+      return res;
+    }
+    var drop = last - now, nr, txt;
+    var dropTxt = drop >= 0 ? "BG fell " + drop : "BG rose " + (-drop);
+    if (drop > 90) {
+      nr = Math.max(3, Math.round(rate * 0.5 * 10) / 10);
+      res.tier = "half"; res.level = "do"; txt = dropTxt + " (more than 90): cut the rate by 50%" + (rate * 0.5 < 3 ? ", but not below the minimum of 3 units/hr." : ".");
+    } else if (drop >= 50) {
+      nr = rate; res.tier = "same"; res.level = "ok"; txt = dropTxt + " (50–90): same rate.";
+    } else {
+      nr = Math.round(rate * 2 * 10) / 10; res.level = "do"; res.tier = "double";
+      txt = dropTxt + (drop >= 0 ? " (49 or less)" : "") + ": double the rate.";
+      if (drop < 0) txt += " A rising BG counts as falling 49 or less. Check the line, the pump and the bag before doubling.";
+      if (nr > 20) { res.level = "tell"; txt += " Doubling goes over 20 units/hr: call MD."; res.flags.push({ level: "tell", text: "Insulin would go to " + r1(nr) + " units/hr (over 20): call MD" }); }
+    }
+    res.newRate = nr; res.val = r1(nr) + " units/hr";
+    res.msg = txt + hiNote;
+    return res;
+  }
+
+  function fluidStep(ins) {
+    var now = bgPair().now, fr = num("flRate"), f = state.fluid, fname = { LR: "LR", D5: "D5 ½NS", D10: "D10" }[f];
+    var res = { flags: [] };
+    if (!ins.phase2) {
+      var at = readingTs(), pl = lrPlan(at);
+      res.plan = pl; res.name = "BG over 200: LR"; res.val = pl.label; res.ivf = pl.short;
+      if (pl.n) {
+        res.level = "do";
+        res.msg = "Bolus " + pl.n + " of 2: LR 1000 mL over 1 hour, " + hhmm(pl.until - 3600000) + "–" + hhmm(pl.until) + "." +
+          (pl.n === 1 ? " Hang bolus 2 at " + hhmm(pl.until) + "." : " At " + hhmm(pl.until) + ", drop to LR 250 mL/hr.");
+      } else {
+        res.level = "ok";
+        res.msg = "Boluses done (LR started " + hhmm(pl.st) + "). LR 250 mL/hr until BG reaches 200 or less.";
+      }
+      return res;
+    }
+    if (f === "LR") { res.level = "do"; res.name = "BG 200 or less"; res.val = "D5 ½NS 150"; res.ivf = "D5 ½NS 150 mL/hr";
+      res.msg = "Change LR to D5 ½NS at 150 mL/hr. From here, adjust it hourly by BG."; return res; }
+    res.name = fname + " hourly";
+    if (now === null || fr === null) { res.level = "info"; res.val = "—"; res.msg = "Enter BG now (Insulin) and the fluid rate."; return res; }
+    var nr, msg;
+    if (now < 130) {
+      nr = fr + 50;
+      if (f === "D5" && nr >= 300) { res.level = "do"; res.val = "D10 150"; res.ivf = "D10 150 mL/hr"; res.msg = "BG " + now + " (under 130): D5 ½NS would reach " + nr + " mL/hr. At 300 or more, change to D10 at 150 mL/hr."; return res; }
+      res.level = "do"; msg = "BG " + now + " (under 130): increase by 50 mL/hr.";
+    } else if (now <= 200) {
+      nr = fr; res.level = "ok"; msg = "BG " + now + " (130–200): same rate.";
+    } else {
+      nr = fr - 50; res.level = "do"; msg = "BG " + now + " (over 200): decrease by 50 mL/hr. Insulin stays at the 0.05 rate.";
+    }
+    if (nr < 100) { res.level = "tell"; msg += " That puts the rate under 100 mL/hr: call MD."; res.flags.push({ level: "tell", text: fname + " rate would fall to " + nr + " mL/hr (under 100): call MD" }); }
+    res.val = fname + " " + nr; res.ivf = fname + " " + nr + " mL/hr"; res.msg = msg + (nr !== fr ? " " + fr + " → " + nr + " mL/hr." : "");
+    return res;
+  }
+
+  function rateBox(ins) {
+    var rate = num("rate"), sameRate = ins.newRate !== null && rate !== null && Math.abs(rate - ins.newRate) < 0.01;
+    var head = ins.tier === "hold" ? "Insulin" : ins.tier === "start" && rate !== null ? "Keep the drip at" : (ins.tier === "start" || (rate === null && ins.newRate !== null)) ? "Start the drip at" : ins.tier === "double" && ins.level === "tell" ? "Doubling gives (call MD)" : ins.tier ? (sameRate ? "Keep the drip at" : "Change the drip to") : "New drip rate";
+    var big = ins.tier === "hold" ? "HOLD" : ins.newRate !== null ? r1(ins.newRate) + " units/hr" : "—";
+    var from = ins.newRate !== null && rate !== null && !sameRate ? r1(rate) + " → " + r1(ins.newRate) + " · " + r1(ins.newRate) + " mL/hr" :
+      ins.newRate !== null ? r1(ins.newRate) + " mL/hr" : "";
+    var rows = [["start", "First BG", "Start 0.1 units/kg/hr"], ["double", "Fell 49 or less (or rose)", "Double"], ["same", "Fell 50–90", "Same rate"], ["half", "Fell more than 90", "Half, min 3"],
+      ["p2", "BG 200 or less", "0.05 units/kg/hr"], ["hold", "K under 3.3", "Hold"]];
+    return '<div class="ratebox ' + ins.level + '"><div class="top"><span class="k">' + head + '</span><span class="from">' + esc(from) + '</span></div>' +
+      '<div class="big">' + esc(big) + '</div><p class="why">' + ins.msg + '</p><ul class="ladder" aria-label="Pathway rules">' +
+      rows.map(function (r) { return '<li' + (ins.tier === r[0] ? ' class="on"' : "") + '><span>' + r[1] + '</span><span>' + r[2] + '</span></li>'; }).join("") + '</ul></div>';
+  }
+
+  function compute() {
+    var flags = [], push = function (l, t) { flags.push({ level: l, text: t }); };
+    var w = kg(), outW = [];
+    // ---- Weight: one compact strip, so the eye goes straight from weight to the BGs
+    var wl = $("outWt");
+    if (w !== null) {
+      var b = band(w), r10 = rateFor(w, 0.1), r05 = rateFor(w, 0.05), wR = Math.round(w);
+      var wtxt = (state.unit === "lb" ? num("wt") + " lb = " + r1(w) + " kg" : r1(w) + " kg") + (Math.abs(w - wR) >= 0.05 ? " → " + wR + " kg" : "");
+      var cap = b >= 0 ? BANDS[b] + "–" + (BANDS[b] + 9) + " kg row (" + wtxt + "). Table whole numbers, not 0.1 × weight."
+        : wtxt + " is off the table (45–154 kg): plain math. Confirm with pharmacy.";
+      if (b < 0) push("watch", "Weight outside the table: confirm rates with pharmacy");
+      wl.className = "wline" + (b < 0 ? " off" : "");
+      outW.push('<div class="stats"><div class="stat main"><span class="s">Start</span><span class="v">' + r1(r10.v) + ' <small>units/hr</small></span></div>' +
+        '<div class="stat"><span class="s">BG ≤200</span><span class="v">' + r1(r05.v) + ' <small>units/hr</small></span></div>' +
+        '<div class="stat"><span class="s">Bolus*</span><span class="v">' + r1(0.15 * w) + ' <small>units</small></span></div></div>' +
+        '<p class="cap">' + esc(cap) + ' *Bolus 0.15 units/kg only if ordered.</p>');
+    }
+    $("outWt").innerHTML = outW.join("");
+    ["t1", "t05"].forEach(function (id) {
+      var bi = band(w);
+      $(id).querySelectorAll("tbody tr").forEach(function (tr, i) { tr.classList.toggle("hit", i === bi); });
+    });
+
+    // ---- Insulin
+    var ins = insulinStep();
+    var bgN = bgPair().now;
+    $("outIns").innerHTML = (bgN !== null && bgN < 70 ? card("tell", "Low BG", bgN + " mg/dL", "Give D50 50 mL IV push, call the physician, and recheck BG every 15 minutes.", true) : "") +
+      rateBox(ins);
+    ins.flags.forEach(function (f) { push(f.level, f.text); });
+    $("nextBtn").disabled = bgPair().now === null;
+    $("nextBtn").textContent = state.log.length || bgPair().last !== null ? "Next hour →" : "Log first BG →";
+
+    // ---- Fluids
+    var fl = fluidStep(ins);
+    $("flManual").hidden = !ins.phase2; $("flPlanBox").hidden = ins.phase2;
+    $("flNote").textContent = ins.phase2 ? "After BG reaches 200: D5 ½NS at 150, then up or down 50 mL/hr each hour by BG." :
+      "LR started defaults to the first logged BG. If the LR bolus started earlier (in the ED, say), enter that time.";
+    var use = insulinUse(Date.now());
+    renderBagLog(use);
+    if (use) {
+      $("outIns").insertAdjacentHTML("beforeend", bagHTML(use));
+      if (use.empty && use.empty - Date.now() <= 3600000) push("watch", "Insulin bag " + use.bagNo + " runs out ≈ " + hhmm(use.empty) + ": have the next bag ready");
+      if (use.age !== null && use.age >= 24 * 3600000) push("watch", "Insulin bag " + use.bagNo + " has run " + dur(use.age) + ": check its expiration");
+    }
+    if (bgPair().now !== null || state.log.length) $("outIns").insertAdjacentHTML("beforeend", '<div class="ivfline"><span>IV fluids now</span><b>' + esc(fl.ivf || fl.val) + "</b></div>");
+    dueLine();
+    var fu = fluidUse(Date.now());
+    $("outFl").innerHTML = card(fl.level, fl.name, fl.val, fl.msg, true) + (fu ? card("info", "Fluids given so far", mL(fu.total) + " mL",
+      "LR " + mL(fu.vol["LR"]) + " · D5 ½NS " + mL(fu.vol["D5 ½NS"]) + " · D10 " + mL(fu.vol["D10"]) + " mL since " + hhmm(fu.start) + dayWord(fu.start) +
+      ". LR counts from the LR start time; D5 and D10 from the logged rates. IV fluids only: not riders, drips or flushes.") : "");
+    fl.flags.forEach(function (f) { push(f.level, f.text); });
+
+    // ---- Electrolytes
+    var k = num("k"), scr = num("scr"), mg = num("mg"), ph = num("phos"), out = [];
+    if (k !== null) {
+      if (scr !== null && scr > 3) {
+        out.push(card("tell", "Potassium", r1(k), "SrCr " + r1(scr) + " is over 3: the pathway's KCl table doesn't apply. Ask the provider for K orders." + (k < 3.3 ? " Insulin still waits for K 3.3 or higher." : "")));
+        push("tell", "SrCr " + r1(scr) + " (over 3): ask for K orders");
+      } else {
+        var n = k < 3.3 ? 4 : k < 4 ? 3 : k < 4.5 ? 2 : k <= 5 ? 1 : 0;
+        if (n === 0) { out.push(card("watch", "Potassium", r1(k), "Over 5: no KCl. Recheck K in 2 hours (insulin will push it down).")); push("watch", "K " + r1(k) + ": no KCl, recheck in 2 hours"); }
+        else {
+          out.push(card(n === 4 ? "tell" : "do", "KCl 20 mEq × " + n, (20 * n) + " mEq",
+            "K " + r1(k) + (n === 4 ? " (under 3.3): hold insulin. " : ". ") + "Bags are 10 mEq/100 mL at 200 mL/hr, so each bag runs 30 minutes (20 mEq/hr). That's " + (2 * n) + " bags: " + (2 * n) + " × 30 min = " + n + (n === 1 ? " hour" : " hours") + " in all." +
+            " 20 mEq/hr is a fast rate: confirm the line (central or peripheral) and cardiac monitoring against policy and the pump library." + (scr === null ? " Table assumes SrCr 3 or less; enter SrCr to check." : "")));
+        }
+      }
+    }
+    if (mg !== null) {
+      var m = mg <= 1.6 ? 4 : mg <= 1.9 ? 2 : 0;
+      if (m) {
+        out.push(card("do", "Magnesium 1 g × " + m, m + " g", "Mg " + r1(mg) + (mg === 1.6 ? " (1.6 is in both rows; the higher dose is shown)" : "") + ". Rider 1 g/100 mL. The sheet says 200 mL/hr and also \"1 gram/hr\", but 100 mL at 200 mL/hr runs in 30 minutes (2 g/hr). Ask pharmacy which is right."));
+        push("watch", "Mg rider rate on the pathway is unclear (1 g/hr vs 200 mL/hr): ask pharmacy");
+      } else out.push(card("ok", "Magnesium", r1(mg), "Over 1.9: no magnesium on the pathway."));
+    }
+    if (ph !== null) {
+      if (ph < 2) {
+        out.push(card("do", "Phosphorus 15 mmol × 1", "15 mmol", "Phos " + r1(ph) + ". K-Phos 15 mmol/250 mL at 62.5 mL/hr (4 hours). It also carries about 22 mEq of potassium."));
+        if (k !== null && k > 5) push("watch", "K-Phos adds about 22 mEq K and K is already over 5: ask the provider");
+      } else out.push(card("ok", "Phosphorus", r1(ph), "2 or higher: no phosphorus on the pathway."));
+    }
+    if (!out.length) out.push(card("info", "Electrolytes", "—", "Enter K (with SrCr), Mg and Phos to get the replacement."));
+    $("outLy").innerHTML = out.join("");
+
+    // ---- Gap and resolution (2009 ADA: BG <200 plus 2 of gap ≤12, HCO3 ≥15, venous pH >7.3)
+    var na = num("na"), cl = num("cl"), hc = num("hco3"), vph = num("vph"), res = [];
+    var gap = na !== null && cl !== null && hc !== null ? na - cl - hc : null;
+    if (gap !== null) res.push(card(gap <= 12 ? "ok" : "watch", "Anion gap", r1(gap),
+      "Na " + na + " − (Cl " + cl + " + HCO₃ " + hc + "). " + (gap <= 12 ? "12 or less: closed." : "Over 12: still open. Keep the drip going per the pathway.")));
+    var bgR = bgPair().now !== null ? bgPair().now : num("bgLast");
+    if (gap !== null || hc !== null || vph !== null) {
+      var crit = [[gap, gap !== null && gap <= 12, "gap ≤12"], [hc, hc !== null && hc >= 15, "HCO₃ ≥15"], [vph, vph !== null && vph > 7.3, "pH >7.3"]];
+      var met = crit.filter(function (c) { return c[1]; }).length, bgOk = bgR !== null && bgR < 200;
+      var list = crit.map(function (c) { return (c[0] === null ? "–" : c[1] ? "✓" : "✗") + " " + c[2]; }).join(" · ");
+      var bgTxt = (bgR === null ? "–" : bgOk ? "✓" : "✗") + " BG <200" + (bgR !== null ? " (" + bgR + ")" : "");
+      if (bgOk && met >= 2) res.push(card("ok", "Resolved by the 2009 criteria", met + " of 3", bgTxt + " · " + list +
+        ". Tell the provider and ask about the transition: SQ basal insulin at least 1–2 hours before the drip stops. The drip stays on until then."));
+      else res.push(card("info", "Not resolved yet", met + " of 3", bgTxt + " · " + list + ". Needs BG under 200 plus 2 of the 3."));
+    }
+    if (!res.length) res.push(card("info", "Anion gap", "—", "Enter Na, Cl and HCO₃ from the BMP. The gap closing (12 or less) is the main sign the DKA is resolving."));
+    $("outRes").innerHTML = res.join("");
+
+    // ---- Stop box: only when BG is under 70 or K under 3.3
+    var bgS = bgPair().now, kS = num("k"), st = [];
+    if (bgS !== null && bgS < 70) st.push("<dt>BG " + bgS + "</dt><dd>Give D50 50 mL IV push, call the physician, and recheck BG every 15 minutes.</dd>");
+    if (kS !== null && kS < 3.3) st.push("<dt>K " + r1(kS) + "</dt><dd>Hold insulin. Give KCl 20 mEq × 4 doses. Insulin waits until K is 3.3 or higher.</dd>");
+    $("stopList").innerHTML = st.join(""); $("stopBox").hidden = !st.length;
+
+    // ---- Summary
+    var seen = {};
+    flags = flags.filter(function (f) { if (seen[f.text]) return false; seen[f.text] = 1; return true; });
+    flags.sort(function (x, y) { return (x.level === "tell" ? 0 : 1) - (y.level === "tell" ? 0 : 1); });
+    $("summaryList").innerHTML = flags.length ? flags.map(function (f) {
+      return '<li><span class="pill ' + f.level + '">' + LABEL[f.level] + '</span><span>' + esc(f.text) + '</span></li>';
+    }).join("") : '<li class="none">Nothing to call about from the numbers entered.</li>';
+    if (!$("exampleNote").hidden) return ins;   // don't save the example patient
+    try { var f = { fluid: state.fluid, phase2: $("phase2").checked }; IDS.forEach(function (id) { f[id] = $(id).value; });
+      localStorage.setItem("dka-fields", JSON.stringify(f)); } catch (e) {}
+    return ins;
+  }
+
+  // ---- Insulin bag: 100 units/100 mL, so units infused = mL infused. Each logged row's new rate runs until the next row.
+  function rowRate(r) { if (r.nw === "HOLD") return 0; var v = parseFloat(r.nw); return isFinite(v) ? v : 0; }
+  function logRows() { return state.log.slice().reverse().map(function (r) { return { ts: rowTs(r), rate: rowRate(r) }; }).filter(function (r) { return r.ts; }); }
+  function integ(rows, from, to) {   // mL (= units) given between two times by the logged rates
+    var v = 0;
+    rows.forEach(function (r, i) {
+      var s0 = Math.max(r.ts, from), e0 = Math.min(i + 1 < rows.length ? rows[i + 1].ts : to, to);
+      if (e0 > s0) v += r.rate * (e0 - s0) / 3600000;
+    });
+    return v;
+  }
+  function insulinUse(at) {
+    var rows = logRows(), bi = state.bag;
+    if (!rows.length && !bi.hung && !bi.pump) return null;
+    var total = integ(rows, -Infinity, at), inBag, note = "";
+    if (bi.pump) inBag = bi.pump.vol + integ(rows, bi.pump.ts, at);
+    else if (bi.hung) {
+      inBag = integ(rows, bi.hung, at);
+      if (!rows.length || bi.hung < rows[0].ts - 5 * 60000) note = "Time before the first logged BG isn't counted. Enter the pump's volume infused for the real number.";
+    } else inBag = total;
+    var raw = inBag, extra = Math.floor(inBag / 100 + 1e-9), bagNo = (bi.no || 1) + extra; inBag -= extra * 100;
+    var rateNow = rows.length ? rows[rows.length - 1].rate : null;
+    return { total: total, raw: raw, bagNo: bagNo, inBag: inBag, left: 100 - inBag, rate: rateNow, start: rows.length ? rows[0].ts : null, note: note,
+             empty: rateNow ? at + (100 - inBag) / rateNow * 3600000 : null, age: bi.hung ? at - bi.hung : null, hung: bi.hung, pump: bi.pump, canUndo: state.bagHist.length > 0 };
+  }
+  // ---- IV fluid volumes. LR follows the bolus plan from the LR start time; D5 ½NS and D10 follow the logged hourly rates.
+  function fluidRows() {
+    return state.log.slice().reverse().map(function (r) {
+      var t = /^(LR|D5 ½NS|D10)/.exec(r.ivf || ""), m = /(\d+(?:\.\d+)?)\s*mL\/hr/.exec(r.ivf || "");
+      return { ts: rowTs(r), type: t ? t[1] : null, rate: m ? +m[1] : 0 };
+    }).filter(function (r) { return r.ts && r.type; });
+  }
+  function fluidUse(at) {
+    var rows = fluidRows(); if (!rows.length) return null;
+    var vol = { "LR": 0, "D5 ½NS": 0, "D10": 0 }, firstDex = Infinity;
+    rows.some(function (r) { if (r.type !== "LR") { firstDex = r.ts; return true; } return false; });
+    var st = lrStartTs(), lrEnd = Math.min(firstDex, at), start = Math.min(st, rows[0].ts);
+    if (lrEnd > st) {
+      var bolusEnd = Math.min(lrEnd, st + 7200000);
+      vol["LR"] = 1000 * (bolusEnd - st) / 3600000 + (lrEnd > st + 7200000 ? 250 * (lrEnd - st - 7200000) / 3600000 : 0);
+    } else start = rows[0].ts;
+    rows.forEach(function (r, i) {
+      if (r.type === "LR" || r.ts < firstDex) return;
+      var e = Math.min(i + 1 < rows.length ? rows[i + 1].ts : at, at);
+      if (e > r.ts) vol[r.type] += r.rate * (e - r.ts) / 3600000;
+    });
+    return { vol: vol, total: vol["LR"] + vol["D5 ½NS"] + vol["D10"], start: start };
+  }
+  function mL(v) { return Math.round(v).toLocaleString("en-US"); }
+
+  function dur(ms) { var m = Math.round(ms / 60000); return Math.floor(m / 60) + " h " + (m % 60) + " min"; }
+  function dayWord(ts) {
+    var d = new Date(ts), t = new Date(); t.setHours(0, 0, 0, 0);
+    var diff = Math.floor((d - t) / 86400000);
+    return diff === -1 ? " yesterday" : diff === 1 ? " tomorrow" : diff < -1 ? " (" + (-diff) + " days ago)" : diff > 1 ? " (in " + diff + " days)" : "";
+  }
+  function bagHTML(u) {
+    var pct = Math.max(0, Math.min(100, u.inBag)), old = u.age !== null && u.age >= 24 * 3600000;
+    var low = u.left <= 15 || (u.empty && u.empty - Date.now() <= 3600000) || old;
+    var bits = [];
+    if (u.hung) bits.push("Hung " + hhmm(u.hung) + dayWord(u.hung) + " · " + dur(u.age) + " ago");
+    if (u.pump) bits.push("pump " + r1(u.pump.vol) + " mL at " + hhmm(u.pump.ts));
+    bits.push(u.empty ? "empty ≈ " + hhmm(u.empty) + dayWord(u.empty) + " at " + r1(u.rate) + " units/hr" : u.rate === 0 ? "drip on hold" : "rate not logged yet");
+    if (u.start) bits.push(r1(u.total) + " units logged since " + hhmm(u.start));
+    return '<div class="bag' + (low ? " low" : "") + '"><div class="top"><span>Insulin bag ' + u.bagNo + " · 100 units/100 mL</span><b>" + r1(u.inBag) + " mL in · " + r1(u.left) + " mL left</b></div>" +
+      '<div class="bar" role="img" aria-label="' + Math.round(pct) + '% of this bag infused"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="sub2"><span>' + esc(bits.join(" · ")) + "</span><span><button type=\"button\" data-act=\"newbag\">New bag hung</button>" +
+      (u.canUndo ? ' <button type="button" data-act="undobag">Undo bag</button>' : "") + "</span></div>" +
+      (old ? '<div class="sub2"><span style="color:var(--watch);font-weight:700">Running 24 hours or more: check the bag\'s expiration on the label and the hang-time policy.</span></div>' : "") +
+      (u.note ? '<div class="sub2"><span>' + esc(u.note) + "</span></div>" : "") + "</div>";
+  }
+  function whenShort(ts) { var d = new Date(ts), t = new Date(); return d.toDateString() === t.toDateString() ? hhmm(ts) : String(d.getMonth() + 1).padStart(2, "0") + "/" + String(d.getDate()).padStart(2, "0") + " " + hhmm(ts); }
+  function renderBagLog(u) {
+    var rows = state.bagHist.map(function (b) {
+      return "<tr><td class=\"n\">" + b.no + "</td><td class=\"n\">" + (b.hung ? whenShort(b.hung) : "—") + "</td><td class=\"n\">" + (b.ended ? whenShort(b.ended) : "—") +
+        "</td><td class=\"n\">" + (b.hung && b.ended ? dur(b.ended - b.hung) : "—") + "</td><td class=\"n\">" + (b.vol !== null && b.vol !== undefined ? r1(b.vol) : "—") +
+        "</td><td>" + (b.pump ? r1(b.pump.vol) + " mL at " + hhmm(b.pump.ts) : "") + "</td></tr>";
+    });
+    if (u) rows.push("<tr><td class=\"n\">" + u.bagNo + "</td><td class=\"n\">" + (u.hung ? whenShort(u.hung) : u.start ? whenShort(u.start) + " (1st BG)" : "—") +
+      '</td><td class="new">running</td><td class="n">' + (u.hung ? dur(Date.now() - u.hung) : u.start ? dur(Date.now() - u.start) : "—") + '</td><td class="n">' + r1(u.inBag) + "</td><td>" +
+      (u.pump ? r1(u.pump.vol) + " mL at " + hhmm(u.pump.ts) : "") + "</td></tr>");
+    $("bagLog").tBodies[0].innerHTML = rows.length ? rows.join("") : '<tr><td class="empty" colspan="6">No insulin bag yet. It starts with the first logged BG.</td></tr>';
+  }
+  function fillBagFields() {
+    var bi = state.bag;
+    $("bagNo").value = bi.no || ""; $("bagHung").value = bi.hung ? hhmm(bi.hung) : ""; $("bagYday").checked = !!(bi.hung && dayWord(bi.hung) === " yesterday");
+    $("bagPump").value = bi.pump ? bi.pump.vol : "";
+  }
+  function readBagFields(which) {
+    var bi = state.bag, n = num("bagNo");
+    bi.no = n && n >= 1 ? Math.round(n) : null;
+    var hv = $("bagHung").value.replace(/\D/g, "");
+    if (hv.length >= 3) {
+      if (hv.length === 3) hv = "0" + hv;
+      var d = new Date(); d.setHours(+hv.slice(0, 2), +hv.slice(2), 0, 0);
+      if ($("bagYday").checked) d.setDate(d.getDate() - 1);
+      else if (d.getTime() - Date.now() > 30 * 60000) { d.setDate(d.getDate() - 1); if (which === "hung") $("bagYday").checked = true; }
+      bi.hung = d.getTime();
+    } else bi.hung = null;
+    if (which === "pump") { var pv = num("bagPump"); bi.pump = pv !== null && pv >= 0 ? { vol: pv, ts: Date.now() } : null; }
+    saveBags(); compute();
+  }
+
+  function dueLine() {
+    var el = $("due");
+    if (!state.log.length) { el.textContent = ""; el.className = "due"; return; }
+    var last = state.log[0], ts = rowTs(last); if (!ts) { el.textContent = ""; return; }
+    var low = +last.bg < 70, due = ts + (low ? 15 : 60) * 60000, mins = Math.round((due - Date.now()) / 60000);
+    el.className = "due" + (mins < 0 ? " late" : mins <= 10 ? " soon" : "");
+    el.textContent = (low ? "Recheck BG (low) at " : "Next BG due ") + hhmm(due) + (mins < 0 ? " · " + (-mins) + " min late" : " · in " + mins + " min");
+  }
+
+  function buildPrint() {
+    var w = kg(), b = band(w), r10 = w !== null ? rateFor(w, 0.1) : null, r05 = w !== null ? rateFor(w, 0.05) : null;
+    var wi = function (v, cls) { return '<span class="wi' + (cls ? " " + cls : "") + '">' + (v === null || v === undefined || v === "" ? "&nbsp;" : esc(v)) + "</span>"; };
+    var rows = state.log.slice().reverse(), blanks = Math.max(4, 16 - rows.length);
+    var tr = rows.map(function (e) {
+      return "<tr><td>" + esc(e.d) + "</td><td>" + esc(e.t) + "</td><td>" + esc(e.bg) + "</td><td>" + esc(e.chg) + "</td><td>" + esc(e.cur) +
+        "</td><td>" + esc(e.nw) + '</td><td class="cm">' + esc(e.ivf) + '</td><td class="cm">' + esc(e.cmt || "") + "</td></tr>";
+    }).join("");
+    for (var i = 0; i < blanks; i++) tr += '<tr><td></td><td></td><td></td><td></td><td></td><td></td><td class="cs">LR · D5 ½NS · D10 &nbsp;____</td><td></td></tr>';
+    var p1 = '<div class="pp">' +
+      '<div class="phd"><h1>DKA ICU Pathway · Bedside tracking</h1><div class="wr">Date ' + wi("") + " &nbsp; Room " + wi("", "s") + "</div></div>" +
+      '<div class="prates"><span>Weight ' + wi(w !== null ? r1(w) : "", "s") + " kg</span><span>Table row " + wi(b >= 0 ? BANDS[b] + "–" + (BANDS[b] + 9) : "") + " kg</span>" +
+      "<span>LR started " + wi($("ivfStart").value, "s") + "</span><span>K ≥3.3 before insulin: Y · N</span></div>" +
+      '<div class="prates"><span>Start (0.1) ' + wi(r10 ? r1(r10.v) : "", "s") + " units/hr</span><span>BG ≤200 (0.05) " + wi(r05 ? r1(r05.v) : "", "s") + " units/hr</span>" +
+      "<span>Bolus, only if ordered " + wi(w !== null ? r1(0.15 * w) : "", "s") + " units</span>" +
+      (function () { var u = insulinUse(Date.now()); return "<span>Insulin so far " + wi(u ? r1(u.total) : "", "s") + " units · bag # " + wi(u ? u.bagNo : "", "s") + "</span>"; })() + "</div>" +
+      (function () { var f = fluidUse(Date.now()); return '<div class="prates"><span>IVF so far: LR ' + wi(f ? mL(f.vol["LR"]) : "", "s") + " mL</span><span>D5 ½NS " + wi(f ? mL(f.vol["D5 ½NS"]) : "", "s") +
+        " mL</span><span>D10 " + wi(f ? mL(f.vol["D10"]) : "", "s") + " mL</span><span>Total " + wi(f ? mL(f.total) : "", "s") + " mL</span></div>"; })() +
+      '<div class="prules">' +
+        "<div><p><b>Insulin, every hour (BG over 200)</b></p><p>Fell 49 or less, or rose → double (over 20 units/hr: call MD)</p><p>Fell 50–90 → same rate</p><p>Fell more than 90 → half (minimum 3 units/hr)</p><p>BG 200 or less → 0.05 rate from the table; keep until SQ insulin</p></div>" +
+        "<div><p><b>IV fluids</b></p><p>BG over 200: LR 1000 mL/hr × 2 hours, then LR 250 mL/hr</p><p>BG 200 or less: D5 ½NS 150 mL/hr. Hourly: under 130 → up 50; 130–200 → same; over 200 → down 50</p><p>D5 ½NS reaches 300 → D10 at 150, same steps. Under 100 mL/hr: call MD</p></div>" +
+        '<p class="stopr">BG under 70: D50 50 mL IV push, call the physician, recheck every 15 min. &nbsp; K under 3.3: hold insulin, KCl 20 mEq × 4.</p>' +
+      "</div>" +
+      '<table class="pt"><colgroup><col style="width:7%"><col style="width:7%"><col style="width:8%"><col style="width:9%"><col style="width:9%"><col style="width:9%"><col style="width:24%"><col style="width:27%"></colgroup>' +
+      "<thead><tr><th>Date</th><th>Time</th><th>BG<br>mg/dL</th><th>Change from last</th><th>Current units/hr</th><th>New units/hr</th><th>IVF (circle) and mL/hr</th><th>Comments</th></tr></thead><tbody>" + tr + "</tbody></table>" +
+      '<p class="pfoot">Prompts, not orders: the provider\'s orders and the Reston DKA ICU Pathway (Pharmacy, 9/22/21) decide. No names or MRNs on this sheet.</p></div>';
+    var labRows = "";
+    var lab0 = ["na", "cl", "hco3"].every(function (id) { return num(id) !== null; });
+    var gap0 = lab0 ? r1(num("na") - num("cl") - num("hco3")) : "";
+    for (var j = 0; j < 7; j++) {
+      var f = j === 0;
+      labRows += "<tr><td></td><td>" + (f && num("na") !== null ? num("na") : "") + "</td><td>" + (f && num("cl") !== null ? num("cl") : "") + "</td><td>" + (f && num("hco3") !== null ? num("hco3") : "") +
+        "</td><td>" + (f ? gap0 : "") + "</td><td>" + (f && num("vph") !== null ? num("vph") : "") + "</td><td>" + (f && num("k") !== null ? num("k") : "") +
+        "</td><td>" + (f && num("mg") !== null ? num("mg") : "") + "</td><td>" + (f && num("phos") !== null ? num("phos") : "") + '</td><td class="cs">Y · N</td></tr>';
+    }
+    var t1 = BANDS.map(function (lo, i) { return "<tr" + (i === b ? ' style="font-weight:700"' : "") + "><td>" + lo + "–" + (lo + 9) + " kg</td><td>" + (i + 5) + "</td><td>" + r1((i + 5) / 2) + "</td></tr>"; }).join("");
+    var p2 = '<div class="pp">' +
+      '<div class="phd"><h1>Labs, gap and replacement</h1><div class="wr">Date ' + wi("") + " &nbsp; Room " + wi("", "s") + "</div></div>" +
+      "<h2>Every BMP: gap = Na − (Cl + HCO₃)</h2>" +
+      '<table class="pt"><thead><tr><th>Time</th><th>Na</th><th>Cl</th><th>HCO₃</th><th>Gap</th><th>pH</th><th>K</th><th>Mg</th><th>Phos</th><th>Resolved? (circle)</th></tr></thead><tbody>' + labRows + "</tbody></table>" +
+      '<p class="pfoot"><b>Resolved (2009 ADA):</b> BG under 200 plus two of: gap 12 or less · HCO₃ 15 or higher · venous pH above 7.3. When resolved, ask about SQ basal insulin at least 1–2 hours before the drip stops. Use the lab\'s gap and range if Expanse reports one.</p>' +
+      '<div class="pcols3"><div><h2>Replacement</h2><table class="ref"><thead><tr><th>Lab</th><th>Dose</th></tr></thead><tbody>' +
+        "<tr><td colspan='2' style='font-size:8pt'>KCl table only if SrCr is 3 or less</td></tr><tr><td>K under 3.3</td><td><b>Hold insulin.</b> KCl 20 mEq × 4</td></tr><tr><td>K 3.3–3.9</td><td>KCl 20 mEq × 3</td></tr><tr><td>K 4–4.4</td><td>KCl 20 mEq × 2</td></tr><tr><td>K 4.5–5</td><td>KCl 20 mEq × 1</td></tr><tr><td>K over 5</td><td>No KCl; recheck K in 2 h</td></tr>" +
+        "<tr><td>Mg 1.6 or less</td><td>1 g × 4</td></tr><tr><td>Mg 1.6–1.9</td><td>1 g × 2</td></tr><tr><td>Phos under 2</td><td>K-Phos 15 mmol × 1 (4 h; ≈22 mEq K)</td></tr></tbody></table>" +
+        '<ul style="margin-top:4pt"><li>KCl bag 10 mEq/100 mL at 200 mL/hr: 30 min per bag, 20 mEq/hr. One 20 mEq dose = 2 bags.</li><li>Mg rider 1 g/100 mL: confirm the rate with pharmacy.</li></ul></div>' +
+      '<div><h2>Insulin rate table</h2><table class="ref"><thead><tr><th>Weight</th><th>0.1</th><th>0.05</th></tr></thead><tbody>' + t1 + '</tbody></table><p class="pfoot">mL/hr = units/hr (100 units/100 mL). Round weight to the nearest kg first.</p></div>' +
+      '<div><h2>Insulin bags</h2><table class="ref"><thead><tr><th>Bag</th><th>Hung</th><th>Ended</th><th>mL</th></tr></thead><tbody>' +
+        (function () {
+          var u = insulinUse(Date.now()), r = state.bagHist.map(function (b) { return "<tr><td>" + b.no + "</td><td>" + (b.hung ? hhmm(b.hung) : "") + "</td><td>" + (b.ended ? hhmm(b.ended) : "") + "</td><td>" + (b.vol != null ? r1(b.vol) : "") + "</td></tr>"; });
+          if (u) r.push("<tr><td>" + u.bagNo + "</td><td>" + (u.hung ? hhmm(u.hung) : u.start ? hhmm(u.start) : "") + "</td><td></td><td>" + r1(u.inBag) + "</td></tr>");
+          while (r.length < 4) r.push('<tr><td style="height:0.28in"></td><td></td><td></td><td></td></tr>');
+          return r.join("");
+        })() +
+        '</tbody></table><h2>Notes</h2><table class="ref"><tbody>' + new Array(7).join('<tr><td style="height:0.3in"></td></tr>') + "</tbody></table></div></div>" +
+      "</div>";
+    $("printSheet").innerHTML = p1 + p2;
+  }
+
+  function renderLog() {
+    var tb = $("log").tBodies[0];
+    tb.innerHTML = state.log.length ? state.log.map(function (e, i) {
+      return "<tr><td>" + esc(e.d) + '</td><td class="n">' + esc(e.t) + '</td><td class="n">' + esc(e.bg) + '</td><td class="n">' + esc(e.chg) +
+        '</td><td class="n">' + esc(e.cur) + '</td><td class="new">' + esc(e.nw) + "</td><td>" + esc(e.ivf) + '</td><td class="c"><input class="cmtcell" type="text" maxlength="80" autocomplete="off" placeholder="add comment" data-i="' + i +
+        '" aria-label="Comment for ' + esc(e.t) + '" value="' + esc(e.cmt || "").replace(/"/g, "&quot;") + '"></td></tr>';
+    }).join("") : '<tr><td class="empty" colspan="8">No rows yet. Enter the first BG as BG now and tap Log first BG.</td></tr>';
+    $("undoBtn").disabled = !state.log.length;
+  }
+
+  function timeNow() { var d = new Date(); return String(d.getHours()).padStart(2, "0") + String(d.getMinutes()).padStart(2, "0"); }
+
+  function nextHour() {
+    var ins = compute(), bp = bgPair(), now = bp.now, last = bp.last, rate = num("rate");
+    if (now === null) return;
+    var tsR = readingTs(), fl = fluidStep(ins), fr = num("flRate"), fname = { LR: "LR", D5: "D5 ½NS", D10: "D10" }[state.fluid], ivf;
+    if (fl.ivf) ivf = fl.ivf;
+    else ivf = fname + (fr !== null ? " " + fr + " mL/hr" : "");
+    var prevIvf = $("ivfStart").value;
+    if (!state.log.length && !prevIvf && !ins.phase2) $("ivfStart").value = hhmm(tsR);   // LR clock starts with the first BG
+    var held = ins.val === "HOLD";
+    var row = {
+      ts: tsR, d: String(new Date(tsR).getMonth() + 1).padStart(2, "0") + "/" + String(new Date(tsR).getDate()).padStart(2, "0"), t: hhmm(tsR), bg: String(now),
+      chg: last === null ? "" : (now <= last ? "↓" + (last - now) : "↑" + (now - last)),
+      cur: rate === null ? "" : r1(rate),
+      nw: held ? "HOLD" : ins.newRate === null ? "" : r1(ins.newRate),
+      ivf: ivf, cmt: $("cmt").value.trim(),
+      prev: { bgLast: $("bgLast").value, bgNow: $("bgNow").value, rate: $("rate").value, flRate: $("flRate").value, fluid: state.fluid, phase2: $("phase2").checked, ivfStart: prevIvf }
+    };
+    state.log.unshift(row); saveLog(); renderLog();
+    $("bgLast").value = now; $("bgNow").value = ""; $("tm").value = ""; $("cmt").value = "";
+    if (ins.newRate !== null) $("rate").value = ins.newRate;
+    if (!ins.phase2 && fl.plan) { setFluid("LR", true); $("flRate").value = fl.plan.rate; }
+    if (ins.phase2) {
+      $("phase2").checked = true;
+      var m = /^(D5 ½NS|D10) (\d+)$/.exec(fl.val || "");
+      if (state.fluid === "LR") { setFluid("D5", true); $("flRate").value = 150; }
+      else if (fl.val === "D10 150") { setFluid("D10", true); $("flRate").value = 150; }
+      else if (m) $("flRate").value = m[2];
+    }
+    $("exampleNote").hidden = true;
+    compute(); $("bgNow").focus();
+  }
+
+  function undo() {   // take the last row off and put its numbers back in the fields
+    var row = state.log.shift(); if (!row) return;
+    saveLog(); renderLog();
+    var p = row.prev || {};
+    ["bgLast", "bgNow", "rate", "flRate", "ivfStart"].forEach(function (k) { if (p[k] !== undefined) $(k).value = p[k]; });
+    $("tm").value = row.t; $("cmt").value = row.cmt || "";
+    if (p.fluid) setFluid(p.fluid, true);
+    if (p.phase2 !== undefined) $("phase2").checked = p.phase2;
+    compute();
+  }
+
+  function setUnit(u) {
+    var w = kg(); state.unit = u;
+    $("uKg").setAttribute("aria-pressed", u === "kg"); $("uLb").setAttribute("aria-pressed", u === "lb");
+    $("wtUnit").textContent = u;
+    if (w !== null) $("wt").value = u === "kg" ? r1(w) : String(Math.round(w * 2.20462));
+    try { localStorage.setItem("dka-unit", u); } catch (e) {}
+    compute();
+  }
+  function setFluid(f, quiet) {
+    state.fluid = f;
+    $("fLR").setAttribute("aria-pressed", f === "LR"); $("fD5").setAttribute("aria-pressed", f === "D5"); $("fD10").setAttribute("aria-pressed", f === "D10");
+    if (!quiet) compute();
+  }
+
+  // Rate tables
+  BANDS.forEach(function (lo, i) {
+    $("t1").tBodies[0].insertAdjacentHTML("beforeend", "<tr><td>" + lo + "–" + (lo + 9) + " kg</td><td>" + (i + 5) + "</td></tr>");
+    $("t05").tBodies[0].insertAdjacentHTML("beforeend", "<tr><td>" + lo + "–" + (lo + 9) + " kg</td><td>" + r1((i + 5) / 2) + "</td></tr>");
+  });
+
+  $("uKg").addEventListener("click", function () { setUnit("kg"); });
+  $("uLb").addEventListener("click", function () { setUnit("lb"); });
+  $("fLR").addEventListener("click", function () { setFluid("LR"); });
+  $("fD5").addEventListener("click", function () { setFluid("D5"); });
+  $("fD10").addEventListener("click", function () { setFluid("D10"); });
+  $("phase2").addEventListener("change", compute);
+  $("nextBtn").addEventListener("click", nextHour);
+  $("undoBtn").addEventListener("click", undo);
+  $("bagNo").addEventListener("input", function () { readBagFields("no"); });
+  $("bagHung").addEventListener("input", function () { readBagFields("hung"); });
+  $("bagYday").addEventListener("change", function () { readBagFields("yday"); });
+  $("bagPump").addEventListener("input", function () { readBagFields("pump"); });
+  fillBagFields();
+  $("outIns").addEventListener("click", function (ev) {
+    var act = ev.target.getAttribute && ev.target.getAttribute("data-act"); if (!act) return;
+    if (act === "newbag") {
+      var u = insulinUse(Date.now());
+      var old = JSON.parse(JSON.stringify(state.bag)), tEnd = readingTs();
+      old.no = old.no || 1; old.ended = tEnd; old.vol = u ? Math.round(insulinUse(tEnd).raw * 10) / 10 : null; if (!old.hung && u && u.start) old.hung = u.start;
+      state.bagHist.push(old);
+      state.bag = { no: (u ? u.bagNo : 1) + 1, hung: readingTs(), pump: null };
+    } else if (act === "undobag" && state.bagHist.length) state.bag = state.bagHist.pop();
+    saveBags(); fillBagFields(); compute();
+  });
+  window.addEventListener("beforeprint", buildPrint);
+
+  // Print: show the sheet first. Inside the claude.ai viewer the browser blocks print(), so Save as file is the way out there.
+  var framed = (function () { try { return window.self !== window.top; } catch (e) { return true; } })();
+  function say(t) { $("prMsg").textContent = t; }
+  function openPreview() {
+    buildPrint(); document.body.classList.add("previewing"); fitPreview(); window.scrollTo(0, 0);
+    say(framed ? "Printing is blocked inside the claude.ai viewer. Tap Save as file, then print the saved file (or print from the phone app)."
+               : "Letter, portrait. If the print window doesn't open, tap Save as file and print that.");
+  }
+  function closePreview() { document.body.classList.remove("previewing"); }
+  function fitPreview() {   // shrink the letter-size pages to fit a phone screen
+    var z = Math.min(1, (document.documentElement.clientWidth - 16) / 816);
+    document.querySelectorAll("#printSheet .pp").forEach(function (pg) { pg.style.zoom = document.body.classList.contains("previewing") ? z : ""; });
+  }
+  window.addEventListener("resize", fitPreview);
+  window.addEventListener("beforeprint", function () { document.querySelectorAll("#printSheet .pp").forEach(function (pg) { pg.style.zoom = ""; }); });
+  window.addEventListener("afterprint", fitPreview);
+  function sheetFile() {
+    return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>DKA bedside sheet</title><style>' +
+      "@page{size:letter portrait;margin:0.45in}body{margin:0;background:#fff}.tip{font:14px/1.4 Arial,sans-serif;padding:10px 14px;background:#eee;margin:0}" +
+      "@media screen{.sheet .pp{width:7.6in;margin:16px auto}}@media print{.tip{display:none}}" + $("sheetCss").textContent +
+      '</style></head><body><p class="tip">To print: Ctrl+P (Cmd+P on a Mac), or Share → Print on a phone. Letter, portrait, scale 100%.</p><div class="sheet">' +
+      $("printSheet").innerHTML + "</div></body></html>";
+  }
+  function stamp() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0") + " " + hhmm(d.getTime()); }
+  function saveSheet() {
+    buildPrint();
+    var name = "DKA bedside sheet " + stamp() + ".html", data = sheetFile();
+    var viaBlob = function () {
+      try {
+        var url = URL.createObjectURL(new Blob([data], { type: "text/html" })), a = document.createElement("a");
+        a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+        say("Saved. Open the file and print it.");
+      } catch (e) { say("Couldn't save the file here."); }
+    };
+    if (window.claude && typeof window.claude.use === "function") {
+      window.claude.use("downloads").then(function (dl) {
+        if (!dl) { viaBlob(); return; }
+        dl.save({ filename: name, data: data }).then(function () { say("Saved. Open the file and print it."); }, function (err) {
+          say(err && err.code === "declined" ? "Not saved." : "Couldn't save the file here.");
+        });
+      }, viaBlob);
+    } else viaBlob();
+  }
+  $("printBtn").addEventListener("click", openPreview);
+  $("prClose").addEventListener("click", closePreview);
+  $("prSave").addEventListener("click", saveSheet);
+  $("prPrint").addEventListener("click", function () {
+    if (framed) { say("Printing is blocked inside the claude.ai viewer. Tap Save as file, then print the saved file."); return; }
+    buildPrint(); window.print();
+  });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && document.body.classList.contains("previewing")) closePreview(); });
+  setInterval(function () { if (!document.hidden) compute(); }, 30000);   // keeps the due time and the LR clock current
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) compute(); });
+  $("log").addEventListener("input", function (ev) {   // comments in the log can be edited any time
+    var t = ev.target; if (!t.classList || !t.classList.contains("cmtcell")) return;
+    var row = state.log[+t.getAttribute("data-i")]; if (row) { row.cmt = t.value; saveLog(); }
+  });
+  IDS.forEach(function (id) { $(id).addEventListener("input", function () { $("exampleNote").hidden = true; compute(); }); });
+  $("clearBtn").addEventListener("click", function () {
+    IDS.forEach(function (id) { $(id).value = ""; });
+    $("phase2").checked = false; state.log = []; saveLog(); state.bag = { no: null, hung: null, pump: null }; state.bagHist = []; saveBags(); fillBagFields(); try { localStorage.removeItem("dka-fields"); } catch (e) {} renderLog(); setFluid("LR", true); $("tm").value = ""; $("cmt").value = "";
+    $("exampleNote").hidden = true; compute(); $("wt").focus();
+  });
+
+  var kept = null;
+  try { kept = JSON.parse(localStorage.getItem("dka-fields") || "null"); } catch (e) {}
+  if (kept && (IDS.some(function (id) { return kept[id]; }) || state.log.length)) {
+    IDS.forEach(function (id) { $(id).value = kept[id] || ""; });
+    setFluid(kept.fluid || "LR", true); $("phase2").checked = !!kept.phase2; $("exampleNote").hidden = true;
+  } else Object.keys(EXAMPLE).forEach(function (k) { $(k).value = EXAMPLE[k]; });
+  renderLog();
+  var saved = null;
+  try { saved = localStorage.getItem("dka-unit"); } catch (e) {}
+  if (saved === "lb") setUnit("lb"); else compute();
+})();
+</script>
+
+<script>
+  // Offline support: save the app on the phone the first time it loads, and say when it's ready.
+  (function () {
+    var el = document.getElementById("offlineState");
+    function say(t) { if (el) el.textContent = t; }
+    if (!("serviceWorker" in navigator)) { say("Offline use isn't available in this browser."); return; }
+    say("Saving for offline use…");
+    navigator.serviceWorker.register("sw.js").then(function () { return navigator.serviceWorker.ready; })
+      .then(function () { return caches.has("dka-pathway-2026-11-01.21"); })
+      .then(function (ok) { say(ok ? "Ready offline ✓" : "Saving for offline use… reopen the app in a few seconds."); })
+      .catch(function () { say("Couldn't save for offline use. Open the app once more while online."); });
+  })();
+</script>
+</body>
+</html>
