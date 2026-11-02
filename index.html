@@ -246,16 +246,21 @@ table.rates td:last-child { font-family: var(--font-num); text-align: right; }
 section[aria-labelledby="h-fl"] { order: 4; } section[aria-labelledby="h-ly"] { order: 5; } section[aria-labelledby="h-res"] { order: 6; }
 .wrap > details, .wrap > .sources, .wrap > .foot { order: 10; }
 
-/* Desktop: insulin drip and its log on the left, everything else on the right */
-@media (min-width: 980px) {
-  .wrap { max-width: 1280px; padding-left: 24px; padding-right: 24px; }
-  header.bar { margin-left: -24px; margin-right: -24px; padding-left: 24px; padding-right: 24px; }
+/* Wide screens (computer, tablet, phone held sideways): insulin drip and its log on the left, everything else on the right */
+@media (min-width: 720px) {
+  .wrap { max-width: 1280px; --gut: max(20px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)); padding-left: var(--gut); padding-right: var(--gut); }
+  header.bar { margin-left: calc(-1 * var(--gut)); margin-right: calc(-1 * var(--gut)); padding-left: var(--gut); padding-right: var(--gut); }
   .cols { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; order: 1; }
   .colA, .colB { display: grid; gap: 14px; align-content: start; }
   .colA > section, .colB > * { order: 0; }
-  table.log { min-width: 0; }
   .colB .fields { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
   .wrap > details { max-width: none; }
+}
+@media (min-width: 1100px) { table.log { min-width: 0; } }
+@media (min-width: 720px) and (max-height: 500px) {   /* phone sideways: short screen, keep things compact */
+  header.bar { position: static; }
+  section.panel { padding: 12px; gap: 10px; }
+  .ratebox .big { font-size: 28px; }
 }
 @media (min-width: 1400px) { .wrap { max-width: 1360px; } }
 @media (prefers-reduced-motion: no-preference) { .chk { transition: background-color .2s ease; } }
@@ -496,7 +501,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     </ol>
   </section>
 
-  <p class="foot">The flags are prompts, not orders. The provider's orders and the pathway decide what changes. Nothing is sent anywhere. Your numbers and tracking rows stay on this device so a closed app doesn't lose them; Clear wipes them. Version 2026-11-01.21. <span id="offlineState"></span></p>
+  <p class="foot">The flags are prompts, not orders. The provider's orders and the pathway decide what changes. Nothing is sent anywhere. Your numbers and tracking rows stay on this device so a closed app doesn't lose them; Clear wipes them. Version 2026-11-01.22. <span id="offlineState"></span></p>
 </div>
 
 <div id="prevBar" role="toolbar" aria-label="Print preview">
@@ -1180,7 +1185,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     if (!("serviceWorker" in navigator)) { say("Offline use isn't available in this browser."); return; }
     say("Saving for offline use…");
     navigator.serviceWorker.register("sw.js").then(function () { return navigator.serviceWorker.ready; })
-      .then(function () { return caches.has("dka-pathway-2026-11-01.21"); })
+      .then(function () { return caches.has("dka-pathway-2026-11-01.22"); })
       .then(function (ok) { say(ok ? "Ready offline ✓" : "Saving for offline use… reopen the app in a few seconds."); })
       .catch(function () { say("Couldn't save for offline use. Open the app once more while online."); });
   })();
