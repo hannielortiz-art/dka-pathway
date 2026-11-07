@@ -9,8 +9,8 @@
 <meta name="apple-mobile-web-app-title" content="DKA Check">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#092240">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#003D79">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -23,51 +23,53 @@
 @font-face { font-family: "IBM Plex Mono"; font-weight: 500; font-style: normal; font-display: swap; src: url("ibm-plex-mono-latin-500-normal.woff2") format("woff2"); }
 @font-face { font-family: "IBM Plex Mono"; font-weight: 600; font-style: normal; font-display: swap; src: url("ibm-plex-mono-latin-600-normal.woff2") format("woff2"); }
 *, *::before, *::after { box-sizing: border-box; }
-body { margin: 0; padding-top: env(safe-area-inset-top, 0px); }
+body { margin: 0; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 img { max-width: 100%; }
 </style>
 </head>
 <body>
 <style>
-/* DKA Check. Dark navy by default (light mode switch on the Ref tab). Bottom tabs: Home, Fluids, Lytes, Labs, Ref.
+/* DKA Check. Light by default, colors from the app icon (dark mode switch on the Ref tab). Bottom tabs: Home, Fluids, Lytes, Labs, Ref.
    Act now stays pinned under the header on every tab; every flag also lands in Prompts on Home and puts a dot on its tab. */
 :root {
-  --hdr: #092240; --btn: #B85915; --orange: #E75925; --sage: #72A391; --vablue: #003D79;
-  --bg: #06152A; --panel: #0D2442; --panel2: #11305A; --line: #1F3F66; --field: #081C36;
-  --ink: #EEF3F9; --muted: #A3B4CA; --accent: #9CC2EE;
-  --ok: #6FD3A0; --ok-bg: #0E3326; --watch: #F2C94C; --watch-bg: #372E0E;
-  --tell: #FF8A80; --tell-bg: #3F1A20; --do: #9CC2EE; --do-bg: #12335C; --info-bg: #0F2E3E;
+  --hdr: #003D79; --hdr-line: #0B4D8F; --btn: #B85915; --orange: #E75925; --sage: #72A391; --vablue: #003D79;
+  --bg: #F2F5F9; --panel: #FFFFFF; --panel2: #F3F6FA; --line: #D6DEE8; --field: #F8FAFC;
+  --ink: #10202F; --muted: #556779; --accent: #003D79;
+  --ok: #2E7A5C; --ok-bg: #EAF3EF; --watch: #8A5A00; --watch-bg: #FFF6DD;
+  --tell: #B42318; --tell-bg: #FDECEA; --do: #003D79; --do-bg: #E6EEF8; --info-bg: #F3F6FA;
   --font-display: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   --font-body: "Atkinson Hyperlegible", -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --font-num: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --navh: 64px;
-  color-scheme: dark;
-}
-:root[data-theme="light"] {
-  --bg: #EEF2F7; --panel: #FFFFFF; --panel2: #F4F7FB; --line: #D3DDE9; --field: #F7F9FC;
-  --ink: #0B1B2E; --muted: #56677D; --accent: #003D79;
-  --ok: #1D7A4E; --ok-bg: #E4F3EB; --watch: #8A5A00; --watch-bg: #FDF1D6;
-  --tell: #B42318; --tell-bg: #FDE7E5; --do: #003D79; --do-bg: #E2ECF8; --info-bg: #E8F1ED;
   color-scheme: light;
+}
+/* Light is the default (dark text on light reads more accurately in studies); Dark is a switch on the Ref tab */
+:root[data-theme="dark"] {
+  --bg: #0A1A2E; --panel: #12294A; --panel2: #183459; --line: #27466E; --field: #0E2240;
+  --ink: #EEF3F9; --muted: #A9BAD0; --accent: #9CC2EE;
+  --ok: #7FD1A6; --ok-bg: #143A2E; --watch: #F2C94C; --watch-bg: #3A3012;
+  --tell: #FF8A80; --tell-bg: #44202A; --do: #9CC2EE; --do-bg: #17406E; --info-bg: #16304F;
+  color-scheme: dark;
 }
 
 [hidden] { display: none !important; }
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; height: 100%; }
+body { height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+.scroller { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
 body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.45; }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--hdr); }
 .wrap { max-width: 640px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-bottom: calc(var(--navh) + 24px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 12px; }
+  padding-bottom: 24px; display: grid; gap: 12px; }
 
 /* Header + pinned Act now */
-.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+.top { position: sticky; top: 0; z-index: 20;
   margin-left: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px))); }
-header.bar { background: var(--hdr); color: #FFFFFF; border-bottom: 1px solid #1B3A63;
+header.bar { background: var(--hdr); color: #FFFFFF; border-bottom: 1px solid var(--hdr-line);
   padding: 9px max(16px, env(safe-area-inset-right, 0px)) 9px max(16px, env(safe-area-inset-left, 0px)); display: flex; align-items: center; gap: 10px; }
 header.bar img { width: 32px; height: 32px; border-radius: 8px; flex: none; }
 header.bar h1 { font-family: var(--font-display); font-weight: 700; font-size: 21px; letter-spacing: .02em; margin: 0; line-height: 1.1; }
-header.bar p { margin: 0; font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: #8FB0D8; }
+header.bar p { margin: 0; font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: #C7D7EA; }
 header.bar .spacer { flex: 1; }
-header.bar button { background: transparent; color: #FFFFFF; border: 1px solid #2F5584; border-radius: 8px; padding: 6px 11px; font: 700 13.5px var(--font-body); cursor: pointer; min-height: 36px; }
+header.bar button { background: transparent; color: #FFFFFF; border: 1px solid #5B86B8; border-radius: 8px; padding: 6px 11px; font: 700 13.5px var(--font-body); cursor: pointer; min-height: 36px; }
 header.bar button:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
 .stop { background: var(--tell-bg); border-bottom: 2px solid var(--tell); padding: 8px max(16px, env(safe-area-inset-right, 0px)) 9px max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 4px; }
 .stop h2 { margin: 0; font-family: var(--font-display); font-size: 15px; text-transform: uppercase; letter-spacing: .08em; color: var(--tell); }
@@ -78,19 +80,21 @@ header.bar button:focus-visible { outline: 3px solid var(--orange); outline-offs
 .example { font-size: 13px; color: var(--watch); background: var(--watch-bg); border-radius: 8px; padding: 7px 12px; margin: 0; }
 
 /* Tabs */
-.tab { display: none; gap: 12px; align-content: start; min-width: 0; }
+.tab { display: none; gap: 12px; align-content: start; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+.wrap, .panes { grid-template-columns: minmax(0, 1fr); }
+section.panel, .summary, details.box, .sources { min-width: 0; }
 .tab.on { display: grid; }
-nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 25; background: var(--hdr); border-top: 1px solid #1B3A63;
+nav.tabs { flex: none; width: 100%; z-index: 25; background: var(--hdr); border-top: 1px solid var(--hdr-line);
   padding: 4px max(6px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(6px, env(safe-area-inset-left, 0px));
-  display: grid; grid-template-columns: repeat(5, 1fr); }
-nav.tabs button { position: relative; background: transparent; border: 0; color: #93A9C6; font: 700 11.5px var(--font-body); letter-spacing: .02em;
+  display: grid; grid-template-columns: repeat(6, 1fr); }
+nav.tabs button { position: relative; background: transparent; border: 0; color: #B9CDE6; font: 700 11.5px var(--font-body); letter-spacing: .02em;
   display: grid; justify-items: center; gap: 2px; padding: 6px 2px 7px; min-height: 56px; cursor: pointer; }
 nav.tabs button svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-nav.tabs button[aria-selected="true"] { color: var(--orange); }
+nav.tabs button[aria-selected="true"] { color: #FFFFFF; }
 nav.tabs button[aria-selected="true"]::after { content: ""; position: absolute; bottom: 3px; width: 5px; height: 5px; border-radius: 50%; background: var(--orange); }
 nav.tabs button:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; border-radius: 10px; }
-nav.tabs .dot { position: absolute; top: 5px; left: calc(50% + 7px); width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--hdr); }
-nav.tabs .dot.tell { background: #FF5A4E; } nav.tabs .dot.watch { background: #F2C94C; }
+nav.tabs .dot { position: absolute; top: 2px; left: calc(50% + 5px); min-width: 19px; height: 19px; padding: 0 5px; box-sizing: border-box; border-radius: 10px; border: 2px solid var(--hdr);
+  background: #E5352B; color: #FFFFFF; font: 700 11px/15px var(--font-body); text-align: center; }
 
 /* Cards and panels */
 .summary, section.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: grid; gap: 10px; min-width: 0; }
@@ -110,6 +114,11 @@ section.panel > h2 small, .summary h2 small { font-family: var(--font-body); tex
 .chip.soon { border-color: var(--watch); background: var(--watch-bg); }
 .chip.late, .chip.urgent { border-color: var(--tell); background: var(--tell-bg); }
 .chip.late .m, .chip.urgent .m { color: var(--tell); font-weight: 700; }
+button.chip { font: inherit; font-size: 13.5px; color: var(--ink); cursor: pointer; min-height: 34px; }
+button.chip:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+.nextstep { display: grid; gap: 8px; }
+.nextstep:empty { display: none; }
+.nextstep .btn { width: 100%; }
 
 /* Fields */
 .fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
@@ -136,7 +145,7 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--field); }
 .seg button { border: 0; background: transparent; color: var(--ink); font: 700 14.5px var(--font-body); padding: 8px 13px; min-height: 42px; cursor: pointer; }
 .seg button[aria-pressed="true"] { background: var(--vablue); color: #FFFFFF; }
-:root:not([data-theme="light"]) .seg button[aria-pressed="true"] { background: #2A5C99; }
+:root[data-theme="dark"] .seg button[aria-pressed="true"] { background: #2A5C99; }
 .seg button:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; }
 .seg.sm button { padding: 3px 9px; min-height: 34px; font-size: 13px; }
 
@@ -163,14 +172,15 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
 
 /* Result cards */
 .out { display: grid; gap: 8px; }
-.chk { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 9px 12px; border-radius: 10px; background: var(--info-bg); border-left: 5px solid var(--sage); }
+.chk { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; padding: 9px 12px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); border-left: 5px solid var(--muted); }
 .chk .name { font-weight: 700; font-size: 14.5px; min-width: 0; }
 .chk .val { font: 600 17px var(--font-num); text-align: right; white-space: nowrap; }
 .chk .msg { grid-column: 1 / -1; font-size: 14px; }
-.chk.ok { background: var(--ok-bg); border-left-color: var(--ok); }
-.chk.watch { background: var(--watch-bg); border-left-color: var(--watch); }
-.chk.tell { background: var(--tell-bg); border-left-color: var(--tell); }
-.chk.do { background: var(--do-bg); border-left-color: var(--do); }
+/* Cards stay plain; the left stripe and the label carry the meaning (never color alone) */
+.chk.ok { border-left-color: var(--sage); }
+.chk.watch { border-left-color: var(--watch); }
+.chk.tell { border-left-color: var(--tell); }
+.chk.do { border-left-color: var(--do); }
 .chk.big .val { font-size: 22px; }
 .pill { display: inline-block; font: 700 10.5px var(--font-body); text-transform: uppercase; letter-spacing: .06em; padding: 2px 7px; border-radius: 999px; white-space: nowrap; vertical-align: 1px; }
 .pill.ok { color: var(--ok); border: 1.5px solid var(--ok); }
@@ -189,8 +199,10 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
 .ratebox .top2 { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 12px; }
 .ratebox .k { font-family: var(--font-display); font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
 .ratebox .big { font: 600 30px/1.1 var(--font-num); }
-.ratebox .from { font: 600 14px var(--font-num); color: var(--muted); white-space: nowrap; }
+.ratebox .from { font: 600 14px var(--font-num); color: var(--muted); }
 .ratebox .why { margin: 0; font-size: 14.5px; }
+.ratebox .big.fl { font-size: 26px; }
+.linkbtn { background: none; border: 0; padding: 4px 2px; margin-left: 6px; color: var(--accent); font: 700 13.5px var(--font-body); cursor: pointer; }
 details.rules summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--accent); padding: 2px 0; }
 .ladder { list-style: none; margin: 4px 0 0; padding: 0; display: grid; font-size: 13px; line-height: 1.3; }
 .ladder li { display: flex; justify-content: space-between; gap: 10px; padding: 3px 8px; border-radius: 6px; color: var(--muted); }
@@ -204,7 +216,7 @@ details.rules summary { cursor: pointer; font-size: 13px; font-weight: 700; colo
 .flcard .msg { font-size: 14px; margin: 0; }
 .flcard.do .now { color: var(--do); } .flcard.tell .now { color: var(--tell); }
 
-.alertline { display: flex; gap: 8px; align-items: baseline; font-size: 14px; background: var(--watch-bg); border-left: 4px solid var(--watch); border-radius: 8px; padding: 7px 10px; }
+.alertline { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 14px; background: var(--watch-bg); border-left: 4px solid var(--watch); border-radius: 8px; padding: 7px 10px; }
 .alertline:empty { display: none; }
 
 /* Insulin bag (Fluids tab) */
@@ -223,6 +235,7 @@ details.rules summary { cursor: pointer; font-size: 13px; font-weight: 700; colo
 .btn:disabled { opacity: .45; cursor: default; }
 .btn:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
 .due { font-size: 14px; font-weight: 700; color: var(--muted); }
+.due.soon { color: var(--watch); } .due.late { color: var(--tell); }
 
 h3.mini { margin: 0; font-size: 14.5px; }
 .tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--line); border-radius: 10px; }
@@ -258,6 +271,7 @@ table.rates td:last-child { font-family: var(--font-num); text-align: right; }
 
 /* Lytes: each replacement with its start time */
 .repl { display: grid; gap: 6px; }
+.repl + .repl { border-top: 1px solid var(--line); padding-top: 10px; }
 .repl .inline { padding-left: 4px; }
 .when { font-size: 13.5px; color: var(--muted); }
 .when b { font-family: var(--font-num); color: var(--ink); }
@@ -283,11 +297,11 @@ table.rates td:last-child { font-family: var(--font-num); text-align: right; }
   .top { margin-left: calc(-1 * var(--gut)); margin-right: calc(-1 * var(--gut)); }
   header.bar, .stop { padding-left: var(--gut); padding-right: var(--gut); }
   .panes { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
-  #tab-home { display: grid; grid-column: 1; grid-row: 1; }
-  .tab:not(#tab-home) { grid-column: 2; grid-row: 1; }
+  #tab-drip { display: grid; grid-column: 1; grid-row: 1; }
+  .tab:not(#tab-drip) { grid-column: 2; grid-row: 1; }
   .tab.side { display: grid; }
-  nav.tabs { grid-template-columns: repeat(4, 1fr); max-width: 640px; margin: 0 auto; border-radius: 14px 14px 0 0; border: 1px solid #1B3A63; border-bottom: 0; }
-  nav.tabs button[data-tab="home"] { display: none; }
+  nav.tabs { grid-template-columns: repeat(5, 1fr); max-width: 640px; align-self: center; border-radius: 14px 14px 0 0; border: 1px solid var(--hdr-line); border-bottom: 0; }
+  nav.tabs button[data-tab="drip"] { display: none; }
   table.log { min-width: 0; }
 }
 @media (prefers-reduced-motion: no-preference) { .chk, .chip { transition: background-color .2s ease; } }
@@ -296,16 +310,17 @@ table.rates td:last-child { font-family: var(--font-num); text-align: right; }
 #printSheet, #prevBar { display: none; }
 @media print {
   @page { size: letter portrait; margin: 0.45in; }
-  html, body { background: #FFFFFF !important; color: #000000 !important; }
+  html, body { background: #FFFFFF !important; color: #000000 !important; display: block !important; height: auto !important; overflow: visible !important; }
   body::before { display: none !important; }
   body > *:not(#printSheet) { display: none !important; }
   #printSheet { display: block !important; padding: 0 !important; overflow: visible !important; }
   #printSheet .pp { width: auto !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; }
 }
-body.previewing .wrap, body.previewing nav.tabs { display: none; }
+body.previewing { display: block; height: auto; overflow: visible; }
+body.previewing .scroller, body.previewing nav.tabs { display: none; }
 body.previewing #prevBar { display: flex; position: sticky; top: 0; z-index: 40; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 16px; background: var(--hdr); color: #FFFFFF; }
 #prevBar button { background: #FFFFFF; color: var(--hdr); border: 0; border-radius: 8px; padding: 9px 14px; font: 700 14.5px var(--font-body); cursor: pointer; min-height: 40px; }
-#prevBar button.ghost { background: transparent; color: #FFFFFF; border: 1px solid #2F5584; }
+#prevBar button.ghost { background: transparent; color: #FFFFFF; border: 1px solid #5B86B8; }
 #prevBar .msg { flex-basis: 100%; font-size: 13.5px; color: #C9D8EC; }
 #prevBar .msg:empty { display: none; }
 body.previewing #printSheet { display: block; overflow-x: auto; padding: 16px 0 32px; background: #56637A; }
@@ -339,6 +354,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
 .sheet .ptrans { display: flex; flex-wrap: wrap; gap: 4pt 16pt; border: 1pt solid #000; padding: 5pt 8pt; margin-top: 7pt; font-size: 10pt; align-items: baseline; }
 </style>
 
+<div class="scroller" id="scroller">
 <div class="wrap">
   <div class="top">
     <header class="bar">
@@ -358,8 +374,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
 
   <div class="panes">
   <!-- ================= HOME ================= -->
-  <div class="tab on" id="tab-home" data-tab="home">
-    <div class="duestrip" id="dueStrip" aria-live="polite"></div>
+  <div class="tab" id="tab-home" data-tab="home">
 
     <div class="summary" aria-live="polite">
       <h2>Prompts for the provider and pharmacy</h2>
@@ -385,6 +400,12 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
         </span></div>
     </section>
 
+  </div>
+
+  <!-- ================= DRIP ================= -->
+  <div class="tab on" id="tab-drip" data-tab="drip">
+    <div class="duestrip" id="dueStrip" aria-live="polite"></div>
+    <div class="alertline" id="bagAlert"></div>
     <section class="panel" aria-labelledby="h-ins">
       <div class="phead">
         <div class="ptitle"><h2 id="h-ins">Insulin drip</h2><span class="sub">100 units/100 mL: units/hr = mL/hr</span></div>
@@ -401,29 +422,16 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
         <div class="field"><label for="bgNow">BG now <span class="u">mg/dL</span></label><input id="bgNow" type="number" inputmode="numeric"></div>
         <div class="field"><label for="rate">Rate now <span class="u">units/hr</span></label><input id="rate" type="number" inputmode="decimal"></div>
       </div>
-      <div class="out" id="outIns" aria-live="polite"></div>
-      <details class="rules"><summary>Pathway rules</summary><ul class="ladder" id="ladder"></ul></details>
-      <label class="check" for="phase2"><input type="checkbox" id="phase2"> BG has already reached 200 or less on this drip</label>
-
-      <div class="flcard" id="flHome">
-        <div class="row1"><span class="lab">IV fluids</span><span class="now" id="flNow">—</span></div>
-        <p class="msg" id="flMsg"></p>
-        <div id="flManual" hidden>
-          <div class="inline">
-            <span class="seg" role="group" aria-label="Fluid running now">
-              <button type="button" id="fLR" aria-pressed="true">LR</button><button type="button" id="fD5" aria-pressed="false">D5 ½NS</button><button type="button" id="fD10" aria-pressed="false">D10</button>
-            </span>
-            <label for="flRate">Rate now (mL/hr)</label><input id="flRate" type="number" inputmode="numeric">
-          </div>
-        </div>
-      </div>
-      <div class="alertline" id="bagAlert"></div>
-
       <div class="field opt"><label for="cmt">Comment <span class="u">optional, no names or MRNs</span></label><input id="cmt" class="txt" type="text" maxlength="80" placeholder="e.g. lab value, meter read HI" autocomplete="off"></div>
       <div class="btnrow">
         <button type="button" class="btn" id="nextBtn">Next hour →</button>
         <span class="due" id="due"></span>
       </div>
+      <div class="out" id="outIns" aria-live="polite"></div>
+      <div id="flBox"></div>
+      <details class="rules"><summary>Pathway rules</summary><ul class="ladder" id="ladder"></ul></details>
+      <label class="check" for="phase2"><input type="checkbox" id="phase2"> BG has already reached 200 or less on this drip</label>
+
       <h3 class="mini">Hourly log <span class="sub">newest first · tap a comment to edit</span></h3>
       <div class="tablewrap"><table class="log" id="log">
         <thead><tr><th>Date</th><th>Time</th><th>BG<br>mg/dL</th><th>Change</th><th>Current<br>units/hr</th><th>New<br>units/hr</th><th>IVF</th><th>Comments</th></tr></thead>
@@ -437,8 +445,20 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
   <div class="tab" id="tab-fluids" data-tab="fluids">
     <section class="panel" aria-labelledby="h-fl">
       <h2 id="h-fl">IV fluids <small>follows BG and the clock</small></h2>
-      <div class="inline" id="flPlanBox"><label for="ivfStart">LR started (24-hr)</label><input id="ivfStart" type="text" inputmode="numeric" maxlength="4" placeholder="1st BG" autocomplete="off">
-        <span class="note">Blank = time of the first logged BG. Enter it if the LR bolus started earlier, in the ED.</span></div>
+      <label class="check" for="edBolus"><input type="checkbox" id="edBolus" checked> ED already gave the 2 L LR bolus (arrives on LR 250 mL/hr)</label>
+      <div class="inline" id="flPlanBox"><label for="ivfStart" id="ivfLbl">LR 250 started (24-hr)</label><input id="ivfStart" type="text" inputmode="numeric" maxlength="4" placeholder="1st BG" autocomplete="off">
+        <span class="note" id="ivfNote">Blank = time of the first logged BG.</span></div>
+      <div class="flcard" id="flHome">
+        <div id="flManual" hidden>
+          <h3 class="mini">Running now <span class="sub">filled in automatically each hour; change only if what's hanging is different</span></h3>
+          <div class="inline">
+            <span class="seg" role="group" aria-label="Fluid running now">
+              <button type="button" id="fLR" aria-pressed="true">LR</button><button type="button" id="fD5" aria-pressed="false">D5 ½NS</button><button type="button" id="fD10" aria-pressed="false">D10</button>
+            </span>
+            <label for="flRate">Rate now (mL/hr)</label><input id="flRate" type="number" inputmode="numeric">
+          </div>
+        </div>
+      </div>
       <div class="out" id="outFl"></div>
     </section>
     <section class="panel" aria-labelledby="h-bag">
@@ -469,13 +489,17 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
       <h2 id="h-ly">Electrolyte replacement <small>per the pathway</small></h2>
       <div class="vals" id="lyVals"></div>
       <p class="note">Values come from the Labs tab. <button type="button" class="btn ghost small" data-go="labs">Enter labs</button></p>
-      <div class="repl" id="kBox"><div class="out" id="outK"></div>
-        <div class="inline" id="kStartRow"><label for="kStart">KCl started at (24-hr)</label><input id="kStart" type="text" inputmode="numeric" maxlength="4" placeholder="e.g. 1430" autocomplete="off"><span class="when" id="kWhen"></span></div></div>
-      <div class="repl" id="mgBox"><div class="out" id="outMg"></div>
-        <div class="inline" id="mgStartRow"><label for="mgStart">Mg started at (24-hr)</label><input id="mgStart" type="text" inputmode="numeric" maxlength="4" placeholder="e.g. 1430" autocomplete="off"><span class="when" id="mgWhen"></span></div></div>
-      <div class="repl" id="phBox"><div class="out" id="outPh"></div>
-        <div class="inline" id="phStartRow"><label for="phStart">K-Phos started at (24-hr)</label><input id="phStart" type="text" inputmode="numeric" maxlength="4" placeholder="e.g. 1430" autocomplete="off"><span class="when" id="phWhen"></span></div></div>
+      <div class="repl" id="kBox">
+        <div class="inline" id="kStartRow"><label for="kStart">KCl started at (24-hr)</label><input id="kStart" type="text" inputmode="numeric" maxlength="4" placeholder="e.g. 1430" autocomplete="off"><span class="when" id="kWhen"></span></div>
+        <div class="out" id="outK"></div></div>
+      <div class="repl" id="mgBox">
+        <div class="inline" id="mgStartRow"><label for="mgStart">Mg started at (24-hr)</label><input id="mgStart" type="text" inputmode="numeric" maxlength="4" placeholder="e.g. 1430" autocomplete="off"><span class="when" id="mgWhen"></span></div>
+        <div class="out" id="outMg"></div></div>
+      <div class="repl" id="phBox">
+        <div class="inline" id="phStartRow"><label for="phStart">K-Phos started at (24-hr)</label><input id="phStart" type="text" inputmode="numeric" maxlength="4" placeholder="e.g. 1430" autocomplete="off"><span class="when" id="phWhen"></span></div>
+        <div class="out" id="outPh"></div></div>
       <p class="note">Rechecks: K 1 hour after the last KCl dose finishes (2 hours if K was over 5). Mg and Phos with the next 4-hour BMP.</p>
+      <div class="nextstep" id="lyNext"></div>
     </section>
   </div>
 
@@ -501,6 +525,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
       </div>
       <div class="out" id="outLabPrev"></div>
       <div class="btnrow"><button type="button" class="btn" id="logLabBtn">Log labs</button><button type="button" class="btn ghost small" id="undoLabBtn">Undo last labs</button></div>
+      <div class="nextstep" id="labNext"></div>
       <p class="note">Only logged BMPs count toward the 2 closed gaps. Blank boxes are skipped, so a K-only recheck doesn't count as a BMP.</p>
     </section>
     <section class="panel" aria-labelledby="h-na">
@@ -521,8 +546,8 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     <section class="panel" aria-labelledby="h-disp">
       <h2 id="h-disp">Display</h2>
       <div class="inline"><span class="seg" role="group" aria-label="Color mode">
-        <button type="button" id="thDark" aria-pressed="true">Dark navy</button><button type="button" id="thLight" aria-pressed="false">Light</button></span>
-        <span class="note">Light can be easier to read under bright room lights.</span></div>
+        <button type="button" id="thLight" aria-pressed="true">Light</button><button type="button" id="thDark" aria-pressed="false">Dark</button></span>
+        <span class="note">Light reads more accurately, even at night; Dark is there if you prefer it.</span></div>
     </section>
 
     <details class="box" open>
@@ -597,13 +622,15 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
         <li>Potassium Phosphates Injection, USP [prescribing information]. Amneal Pharmaceuticals; 2024.<span class="use">15 mmol phosphorus carries about 22 mEq potassium</span></li>
       </ol>
     </section>
-    <p class="foot">The flags are prompts, not orders. The provider's orders and the pathway decide what changes. Nothing is sent anywhere. Your numbers stay on this device so a closed app doesn't lose them; Clear wipes them. Version 2026-11-07.2. <span id="offlineState"></span></p>
+    <p class="foot">The flags are prompts, not orders. The provider's orders and the pathway decide what changes. Nothing is sent anywhere. Your numbers stay on this device so a closed app doesn't lose them; Clear wipes them. Version 2026-11-07.17. <span id="offlineState"></span></p>
   </div>
   </div>
 </div>
+</div>
 
 <nav class="tabs" role="tablist" aria-label="Sections">
-  <button type="button" role="tab" data-tab="home" aria-selected="true"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Home<span class="dot" hidden></span></button>
+  <button type="button" role="tab" data-tab="home" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Home<span class="dot" hidden></span></button>
+  <button type="button" role="tab" data-tab="drip" aria-selected="true"><svg viewBox="0 0 24 24"><path d="M12 3c-3 4-6 7.5-6 11a6 6 0 0 0 12 0c0-3.5-3-7-6-11z"/><path d="M9.5 14.5h5M12 12v5"/></svg>Drip<span class="dot" hidden></span></button>
   <button type="button" role="tab" data-tab="fluids" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M7 3h10v9a5 5 0 0 1-10 0z"/><path d="M12 17v4M9 7h6M9 10h4"/></svg>Fluids<span class="dot" hidden></span></button>
   <button type="button" role="tab" data-tab="lytes" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M7.5 14h9"/></svg>Lytes<span class="dot" hidden></span></button>
   <button type="button" role="tab" data-tab="labs" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M5 16l4-5 4 3 6-8"/></svg>Labs<span class="dot" hidden></span></button>
@@ -694,6 +721,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
   function lrPlan(at) {   // pathway: LR 1000 mL every hour x 2, then LR 250 mL/hr
     var st = lrStartTs(), h = (at - st) / H;
     if (h < 0) h = 0;
+    if ($("edBolus").checked) return { label: "LR 250 mL/hr", short: "LR 250 mL/hr", rate: 250, n: 0, until: null, st: st, ed: true };
     if (h < 1) return { label: "LR 1000 mL/hr", short: "LR bolus 1/2 (1000 mL/hr)", rate: 1000, n: 1, until: st + H, st: st };
     if (h < 2) return { label: "LR 1000 mL/hr", short: "LR bolus 2/2 (1000 mL/hr)", rate: 1000, n: 2, until: st + 2 * H, st: st };
     return { label: "LR 250 mL/hr", short: "LR 250 mL/hr", rate: 250, n: 0, until: null, st: st };
@@ -721,9 +749,13 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     return cv("glu");
   }
 
+  function offTs() { return parseHHMM(state.trans.stop, Date.now()); }   // drip stopped (transition card)
   function insulinStep() {
     var bp = bgPair(), last = bp.last, now = bp.now, rate = num("rate"), k = cv("k"), w = kg();
     var res = { flags: [], newRate: null };
+    var off = offTs();
+    if (off) { res.phase2 = true; res.tier = "off"; res.level = "info"; res.name = "Insulin drip"; res.val = "OFF";
+      res.msg = "Drip stopped at " + hhmm(off) + ". BG checks, correction scale and mealtime insulin per the post-drip orders."; return res; }
     var p2 = $("phase2").checked || (now !== null && now <= 200);
     res.phase2 = p2;
     if (now !== null && now < 70) res.flags.push({ level: "tell", text: "BG " + now + ": D50 50 mL IV push, call the physician, recheck q15 min" });
@@ -740,7 +772,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
       res.newRate = target.v; res.val = r1(target.v) + " units/hr";
       var parts = [];
       res.level = rate !== null && Math.abs(rate - target.v) > 0.01 ? "do" : "ok";
-      parts.push("BG " + (now !== null ? now + " " : "") + "is in the 200-or-less phase: 0.05 units/kg/hr. Hold this rate until SQ insulin; adjust the dextrose fluid hourly instead.");
+      parts.push("200-or-less phase: hold 0.05 units/kg/hr until SQ insulin. Fluids do the adjusting.");
       if (rate === null && !state.log.length) { res.level = "watch"; parts.unshift("The pathway gives no start rate when the first BG is already 200 or less. Ask the provider.");
         res.flags.push({ level: "watch", text: "First BG 200 or less: ask the provider for the start rate" }); }
       if (!target.table) { parts.push("Weight is outside the pathway table: this is 0.05 × weight. Confirm with pharmacy."); res.flags.push({ level: "watch", text: "Weight outside the table: confirm the rate with pharmacy" }); }
@@ -754,7 +786,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
       if (w === null) { res.level = "info"; res.val = "—"; res.msg = "First BG: enter weight to get the start rate (0.1 units/kg/hr from the table)." + hiNote; return res; }
       var st = rateFor(w, 0.1);
       res.level = "do"; res.newRate = st.v; res.val = r1(st.v) + " units/hr";
-      res.msg = "First BG " + now + ": table rate for " + Math.round(w) + " kg. Bolus 0.15 units/kg IV only if ordered." +
+      res.msg = "First BG: table rate for " + Math.round(w) + " kg. Bolus only if ordered." +
         (k === null ? " Check K first: insulin starts only when K is 3.3 or higher." : "") + hiNote;
       if (!st.table) res.flags.push({ level: "watch", text: "Weight outside the table: confirm the rate with pharmacy" });
       return res;
@@ -762,7 +794,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     if (last === null && now !== null && rate !== null) {
       res.tier = "start"; res.name = "First BG"; res.level = "ok"; res.newRate = rate; res.val = r1(rate) + " units/hr";
       var stR = w !== null ? rateFor(w, 0.1) : null;
-      res.msg = "First BG " + now + " is the baseline. Keep " + r1(rate) + " units/hr; the next BG decides the first change." +
+      res.msg = "First BG is the baseline. The next BG decides the first change." +
         (stR && Math.abs(stR.v - rate) > 0.01 ? " The table start rate for " + Math.round(w) + " kg is " + r1(stR.v) + " units/hr." : "") + hiNote;
       if (stR && Math.abs(stR.v - rate) > 0.01) res.level = "watch";
       return res;
@@ -783,7 +815,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     } else {
       nr = Math.round(rate * 2 * 10) / 10; res.level = "do"; res.tier = "double";
       txt = dropTxt + (drop >= 0 ? " (49 or less)" : "") + ": double the rate.";
-      if (drop < 0) txt += " A rising BG counts as falling 49 or less. Check the line, the pump and the bag before doubling.";
+      if (drop < 0) txt += " Check the line, pump and bag before doubling.";
       if (nr > 20) { res.level = "tell"; txt += " Doubling goes over 20 units/hr: call MD."; res.flags.push({ level: "tell", text: "Insulin would go to " + r1(nr) + " units/hr (over 20): call MD" }); }
     }
     res.newRate = nr; res.val = r1(nr) + " units/hr";
@@ -794,6 +826,8 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
   function fluidStep(ins) {
     var now = bgPair().now, fr = num("flRate"), f = state.fluid, fname = { LR: "LR", D5: "D5 ½NS", D10: "D10" }[f];
     var res = { flags: [] };
+    if (ins.tier === "off") { res.level = "info"; res.name = "IV fluids"; res.val = "Per orders"; res.off = true;
+      res.msg = "The pathway's fluids end with the drip. Run IV fluids per the provider's orders."; return res; }
     if (!ins.phase2) {
       var at = readingTs(), pl = lrPlan(at);
       res.plan = pl; res.name = "BG over 200: LR"; res.val = pl.label; res.ivf = pl.short;
@@ -803,14 +837,14 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
           (pl.n === 1 ? " Hang bolus 2 at " + hhmm(pl.until) + "." : " At " + hhmm(pl.until) + ", drop to LR 250 mL/hr.");
       } else {
         res.level = "ok";
-        res.msg = "Boluses done (LR started " + hhmm(pl.st) + "). LR 250 mL/hr until BG reaches 200 or less.";
+        res.msg = (pl.ed ? "ED gave the 2 L LR bolus." : "Boluses done (LR started " + hhmm(pl.st) + ").") + " LR 250 mL/hr until BG reaches 200 or less.";
       }
       return res;
     }
     if (f === "LR") { res.level = "do"; res.name = "BG 200 or less"; res.val = "D5 ½NS 150 mL/hr"; res.ivf = "D5 ½NS 150 mL/hr";
-      res.msg = "Change LR to D5 ½NS at 150 mL/hr. From here, adjust it hourly by BG."; return res; }
+      res.msg = "BG reached 200 or less: switch to D5 ½NS 150."; return res; }
     res.name = fname + " hourly";
-    if (now === null || fr === null) { res.level = "info"; res.val = "—"; res.msg = "Enter BG now and the fluid rate running now."; return res; }
+    if (now === null || fr === null) { res.level = "info"; res.val = "—"; res.msg = fr === null ? "Enter the rate running now (below)." : "Enter BG now for the next change."; return res; }
     var nr, msg;
     if (now < 130) {
       nr = fr + 50;
@@ -828,8 +862,8 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
 
   function rateBox(ins) {
     var rate = num("rate"), sameRate = ins.newRate !== null && rate !== null && Math.abs(rate - ins.newRate) < 0.01;
-    var head = ins.tier === "hold" ? "Insulin" : ins.tier === "start" && rate !== null ? "Keep the drip at" : (ins.tier === "start" || (rate === null && ins.newRate !== null)) ? "Start the drip at" : ins.tier === "double" && ins.level === "tell" ? "Doubling gives (call MD)" : ins.tier ? (sameRate ? "Keep the drip at" : "Change the drip to") : "New drip rate";
-    var big = ins.tier === "hold" ? "HOLD" : ins.newRate !== null ? r1(ins.newRate) + " units/hr" : "—";
+    var head = ins.tier === "off" ? "Insulin drip" : ins.tier === "hold" ? "Insulin" : ins.tier === "start" && rate !== null ? "Keep the drip at" : (ins.tier === "start" || (rate === null && ins.newRate !== null)) ? "Start the drip at" : ins.tier === "double" && ins.level === "tell" ? "Doubling gives (call MD)" : ins.tier ? (sameRate ? "Keep the drip at" : "Change the drip to") : "New drip rate";
+    var big = ins.tier === "off" ? "OFF" : ins.tier === "hold" ? "HOLD" : ins.newRate !== null ? r1(ins.newRate) + " units/hr" : "—";
     var from = ins.newRate !== null && rate !== null && !sameRate ? r1(rate) + " → " + r1(ins.newRate) : "";
     return '<div class="ratebox ' + ins.level + '"><div class="top2"><span class="k">' + head + '</span><span class="from">' + esc(from) + '</span></div>' +
       '<div class="big">' + esc(big) + '</div><p class="why">' + ins.msg + '</p></div>';
@@ -873,7 +907,8 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     var vol = { "LR": 0, "D5 ½NS": 0, "D10": 0 }, firstDex = Infinity;
     rows.some(function (r) { if (r.type !== "LR") { firstDex = r.ts; return true; } return false; });
     var st = lrStartTs(), lrEnd = Math.min(firstDex, at), start = Math.min(st, rows[0].ts);
-    if (lrEnd > st) {
+    if (lrEnd > st && $("edBolus").checked) vol["LR"] = 250 * (lrEnd - st) / H;
+    else if (lrEnd > st) {
       var bolusEnd = Math.min(lrEnd, st + 2 * H);
       vol["LR"] = 1000 * (bolusEnd - st) / H + (lrEnd > st + 2 * H ? 250 * (lrEnd - st - 2 * H) / H : 0);
     } else start = rows[0].ts;
@@ -884,6 +919,8 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     });
     return { vol: vol, total: vol["LR"] + vol["D5 ½NS"] + vol["D10"], start: start };
   }
+  // Totals run to now, but never more than 1 hour past the last logged BG: past that the log is stale (or this is a test with past times)
+  function countTo() { var o = offTs(); if (!state.log.length) return o ? Math.min(o, Date.now()) : Date.now(); var t = rowTs(state.log[0]); var c = t ? Math.min(Date.now(), t + H) : Date.now(); return o ? Math.min(c, o) : c; }
   function mL(v) { return Math.round(v).toLocaleString("en-US"); }
 
   function bagHTML(u) {
@@ -893,7 +930,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     if (u.hung) bits.push("Hung " + hhmm(u.hung) + dayWord(u.hung) + " · " + dur(u.age) + " ago");
     if (u.pump) bits.push("pump " + r1(u.pump.vol) + " mL at " + hhmm(u.pump.ts));
     bits.push(u.empty ? "empty ≈ " + hhmm(u.empty) + dayWord(u.empty) + " at " + r1(u.rate) + " units/hr" : u.rate === 0 ? "drip on hold" : "rate not logged yet");
-    if (u.start) bits.push(r1(u.total) + " units logged since " + hhmm(u.start));
+    if (u.start) bits.push(r1(u.total) + " units, " + hhmm(u.start) + " to " + hhmm(countTo()));
     return '<div class="bag' + (low ? " low" : "") + '"><div class="top3"><span>Bag ' + u.bagNo + "</span><b>" + r1(u.inBag) + " mL in · " + r1(u.left) + " mL left</b></div>" +
       '<div class="bar" role="img" aria-label="' + Math.round(pct) + '% of this bag infused"><i style="width:' + pct + '%"></i></div>' +
       '<div class="sub2"><span>' + esc(bits.join(" · ")) + '</span><span><button type="button" class="btn ghost small" data-act="newbag">New bag hung</button>' +
@@ -991,6 +1028,8 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
   // ---- Lytes: dose, start time, when it finishes, when K is redrawn
   function replInfo() {
     var k = cur("k"), scr = cv("scr"), mg = cur("mg"), ph = cur("phos"), info = {};
+    var off = parseHHMM(state.trans.stop, Date.now());
+    if (off) return { off: off };   // drip stopped: the pathway's replacement tables no longer apply
     if (k) {
       if (scr !== null && scr > 3) info.k = { kind: "renal", v: k.v };
       else { var n = k.v < 3.3 ? 4 : k.v < 4 ? 3 : k.v < 4.5 ? 2 : k.v <= 5 ? 1 : 0; info.k = { n: n, v: k.v, ts: k.ts }; }
@@ -1006,7 +1045,9 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
   }
 
   function compute() {
+    // flags = calls and pharmacy questions (listed in Prompts); tasks = your own to-dos (badge only, shown on their tab)
     var flags = [], push = function (l, t, tab) { flags.push({ level: l, text: t, tab: tab || "home" }); };
+    var tasks = [], task = function (t, tab) { tasks.push({ text: t, tab: tab }); };
     var w = kg(), outW = [];
     var wl = $("outWt");
     if (w !== null) {
@@ -1014,7 +1055,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
       var wtxt = (state.unit === "lb" ? num("wt") + " lb = " + r1(w) + " kg" : r1(w) + " kg") + (Math.abs(w - wR) >= 0.05 ? " → " + wR + " kg" : "");
       var cap = b >= 0 ? BANDS[b] + "–" + (BANDS[b] + 9) + " kg row (" + wtxt + "). *Bolus only if ordered."
         : wtxt + " is off the table (45–154 kg): plain math. Confirm with pharmacy.";
-      if (b < 0) push("watch", "Weight outside the table: confirm rates with pharmacy");
+      if (b < 0) push("watch", "Weight outside the table: confirm rates with pharmacy", "drip");
       wl.className = "wline" + (b < 0 ? " off" : "");
       outW.push('<div class="stats"><div class="stat main"><span class="s">Start</span><span class="v">' + r1(r10.v) + ' <small>units/hr</small></span></div>' +
         '<div class="stat"><span class="s">BG ≤200</span><span class="v">' + r1(r05.v) + ' <small>units/hr</small></span></div>' +
@@ -1031,29 +1072,38 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     var ins = insulinStep(), bgN = bgPair().now;
     $("outIns").innerHTML = (bgN !== null && bgN < 70 ? card("tell", "Low BG", bgN + " mg/dL", "Give D50 50 mL IV push, call the physician, and recheck BG every 15 minutes.", true) : "") + rateBox(ins);
     $("ladder").innerHTML = RULES.map(function (r) { return "<li" + (ins.tier === r[0] ? ' class="on"' : "") + "><span>" + r[1] + "</span><span>" + r[2] + "</span></li>"; }).join("");
-    ins.flags.forEach(function (f) { push(f.level, f.text, f.tab); });
-    $("nextBtn").disabled = bgN === null;
-    $("nextBtn").textContent = state.log.length || bgPair().last !== null ? "Next hour →" : "Log first BG →";
+    ins.flags.forEach(function (f) { push(f.level, f.text, f.tab || "drip"); });
+    $("nextBtn").disabled = bgN === null || ins.tier === "off";
+    $("nextBtn").textContent = ins.tier === "off" ? "Drip off" : state.log.length || bgPair().last !== null ? "Next hour →" : "Log first BG →";
 
     // ---- Fluids (Home card + Fluids tab)
     var fl = fluidStep(ins);
     $("flManual").hidden = !ins.phase2;
-    $("flHome").className = "flcard " + fl.level;
-    $("flNow").textContent = fl.val;
-    $("flMsg").innerHTML = fl.msg;
-    var fu = fluidUse(Date.now());
+    // Same layout as the insulin rate box: what is running now → what it changes to
+    var fnm = { LR: "LR", D5: "D5 ½NS", D10: "D10" }[state.fluid], frn = num("flRate");
+    var curF = frn !== null ? fnm + " " + frn + " mL/hr" : null, newF = fl.val && fl.val !== "—" ? fl.val : null;
+    var sameF = !!(curF && newF && curF === newF);
+    if (fl.off) { newF = "Per provider orders"; curF = null; sameF = false; }
+    if (!newF && curF) { newF = curF; sameF = true; }
+    var headF = fl.off ? "IV fluids" : !newF ? "IV fluids" : sameF && fl.level === "info" ? "IV fluids running" : !curF ? "Run IV fluids at" : sameF ? "Keep IV fluids at" : fl.level === "tell" ? "IV fluids (call MD)" : "Change IV fluids to";
+    $("flBox").innerHTML = '<div class="ratebox ' + (sameF && fl.level !== "info" ? "ok" : fl.level) + '"><div class="top2"><span class="k">' + headF + (ins.phase2 && ins.tier !== "off" ? ' <button type="button" class="linkbtn" data-go="fluids">Edit ›</button>' : "") + '</span><span class="from">' +
+      esc(curF && newF && !sameF ? curF.replace(" mL/hr", "") + " → " + newF.replace(" mL/hr", "") : "") + '</span></div><div class="big fl">' + esc(newF || "—") + '</div><p class="why">' + fl.msg + "</p></div>";
+    var ed = $("edBolus").checked;
+    $("ivfLbl").textContent = ed ? "LR 250 started (24-hr)" : "LR bolus started (24-hr)";
+    $("ivfNote").textContent = ed ? "Blank = time of the first logged BG." : "Blank = time of the first logged BG. Enter it if the bolus started earlier, in the ED.";
+    var thru = countTo(), fu = fluidUse(thru);
     $("outFl").innerHTML = card(fl.level, fl.name, fl.val, fl.msg) + (fu ? card("info", "Fluids given so far", mL(fu.total) + " mL",
-      "LR " + mL(fu.vol["LR"]) + " · D5 ½NS " + mL(fu.vol["D5 ½NS"]) + " · D10 " + mL(fu.vol["D10"]) + " mL since " + hhmm(fu.start) + dayWord(fu.start) +
-      ". LR counts from the LR start time; D5 and D10 from the logged rates. IV fluids only: not riders, drips or flushes.") : card("info", "Fluids given so far", "—", "Starts counting with the first logged BG."));
-    fl.flags.forEach(function (f) { push(f.level, f.text); });
-    var use = insulinUse(Date.now()), bagMsg = "";
+      "LR " + mL(fu.vol["LR"]) + " · D5 ½NS " + mL(fu.vol["D5 ½NS"]) + " · D10 " + mL(fu.vol["D10"]) + " mL, " + hhmm(fu.start) + dayWord(fu.start) + " to " + hhmm(thru) +
+      "." + ($("edBolus").checked ? " Plus 2,000 mL LR in the ED: " + mL(fu.total + 2000) + " mL in all." : "") + " LR counts from the LR start time; D5 and D10 from the logged rates. IV fluids only: not riders, drips or flushes.") : card("info", "Fluids given so far", "—", "Starts counting with the first logged BG."));
+    fl.flags.forEach(function (f) { push(f.level, f.text, "drip"); });
+    var use = insulinUse(thru), bagMsg = "";
     renderBagLog(use);
     $("outBag").innerHTML = use ? bagHTML(use) : '<p class="note">No bag yet. It starts with the first logged BG.</p>';
-    if (use) {
-      if (use.empty && use.empty - Date.now() <= H) { bagMsg = "Insulin bag " + use.bagNo + " runs out ≈ " + hhmm(use.empty) + ": have the next bag ready"; push("watch", bagMsg, "fluids"); }
-      else if (use.age !== null && use.age >= 24 * H) { bagMsg = "Insulin bag " + use.bagNo + " has run " + dur(use.age) + ": check its expiration"; push("watch", bagMsg, "fluids"); }
+    if (use && !offTs()) {
+      if (use.empty && use.empty - Date.now() <= H) { bagMsg = "Insulin bag " + use.bagNo + " runs out ≈ " + hhmm(use.empty) + ": have the next bag ready"; task(bagMsg, "drip"); }
+      else if (use.age !== null && use.age >= 24 * H) { bagMsg = "Insulin bag " + use.bagNo + " has run " + dur(use.age) + ": check its expiration"; task(bagMsg, "drip"); }
     }
-    $("bagAlert").innerHTML = bagMsg ? '<span class="pill watch">Bag</span><span>' + esc(bagMsg) + "</span>" : "";
+    $("bagAlert").innerHTML = bagMsg ? '<span class="pill watch">Bag</span><span style="flex:1">' + esc(bagMsg) + '</span><button type="button" class="btn ghost small" data-go="fluids">Fluids tab →</button>' : "";
 
     // ---- Lytes
     var ri = replInfo(), vals = [];
@@ -1068,7 +1118,6 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
       push("tell", "SrCr " + r1(cv("scr")) + " (over 3): ask for K orders", "lytes");
     } else if (ri.k && ri.k.n === 0) {
       kOut = card("watch", "Potassium", r1(ri.k.v), "Over 5: no KCl. Recheck K in 2 hours (≈ " + hhmm(ri.k.recheck) + "). Insulin will push it down.");
-      push("watch", "K " + r1(ri.k.v) + ": no KCl, recheck K ≈ " + hhmm(ri.k.recheck), "lytes");
     } else if (ri.k) {
       var n = ri.k.n;
       kOut = card(n === 4 ? "tell" : "do", "KCl 20 mEq × " + n, (20 * n) + " mEq",
@@ -1076,7 +1125,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
         " Confirm central vs peripheral line and cardiac monitoring against policy." + (cv("scr") === null ? " Table assumes SrCr 3 or less; enter SrCr on Labs." : ""));
       $("kStartRow").hidden = false;
       if (ri.k.start) kWhen = "Done ≈ <b>" + hhmm(ri.k.done) + "</b> · K recheck <b>" + hhmm(ri.k.recheck) + "</b> (1 hour after)";
-      else push("watch", "KCl × " + n + ": enter the start time (Lytes) to time the K recheck", "lytes");
+      else { kWhen = "Enter the start time to set the K recheck."; task("KCl start time", "lytes"); }
     } else kOut = card("info", "Potassium", "—", "Enter K and SrCr on the Labs tab.");
     $("outK").innerHTML = kOut; $("kWhen").innerHTML = kWhen;
     var mgOut = "", mgWhen = "";
@@ -1085,7 +1134,8 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
       mgOut = card("do", "Magnesium 1 g × " + ri.mg.m, ri.mg.m + " g", "Mg " + r1(ri.mg.v) + (ri.mg.v === 1.6 ? " (1.6 is in both rows; the higher dose is shown)" : "") + ". Rider 1 g/100 mL. The sheet says 200 mL/hr (30 min each) and also \"1 gram/hr\". Ask pharmacy which is right.");
       push("watch", "Mg rider rate on the pathway is unclear (1 g/hr vs 200 mL/hr): ask pharmacy", "lytes");
       $("mgStartRow").hidden = false;
-      if (ri.mg.start) mgWhen = "Done ≈ <b>" + hhmm(ri.mg.done) + "</b> at 2 g/hr, <b>" + hhmm(ri.mg.done1) + "</b> at 1 g/hr · recheck with the next BMP" + (resolution().nextBmp ? " (<b>" + hhmm(resolution().nextBmp) + "</b>)" : "");
+      if (!ri.mg.start) { mgWhen = "Enter the start time."; task("Mg start time", "lytes"); }
+      else mgWhen = "Done ≈ <b>" + hhmm(ri.mg.done) + "</b> at 2 g/hr, <b>" + hhmm(ri.mg.done1) + "</b> at 1 g/hr · recheck with the next BMP" + (resolution().nextBmp ? " (<b>" + hhmm(resolution().nextBmp) + "</b>)" : "");
     } else if (ri.mg) mgOut = card("ok", "Magnesium", r1(ri.mg.v), "Over 1.9: no magnesium on the pathway.");
     else mgOut = card("info", "Magnesium", "—", "Enter Mg on the Labs tab.");
     $("outMg").innerHTML = mgOut; $("mgWhen").innerHTML = mgWhen;
@@ -1095,10 +1145,26 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
       phOut = card("do", "Phosphorus 15 mmol × 1", "15 mmol", "Phos " + r1(ri.ph.v) + ". K-Phos 15 mmol/250 mL at 62.5 mL/hr (4 hours). It also carries about 22 mEq of potassium.");
       if (cv("k") !== null && cv("k") > 5) push("watch", "K-Phos adds about 22 mEq K and K is already over 5: ask the provider", "lytes");
       $("phStartRow").hidden = false;
-      if (ri.ph.start) phWhen = "Done ≈ <b>" + hhmm(ri.ph.done) + "</b> · recheck with the next BMP" + (resolution().nextBmp ? " (<b>" + hhmm(resolution().nextBmp) + "</b>)" : "");
+      if (!ri.ph.start) { phWhen = "Enter the start time."; task("K-Phos start time", "lytes"); }
+      else phWhen = "Done ≈ <b>" + hhmm(ri.ph.done) + "</b> · recheck with the next BMP" + (resolution().nextBmp ? " (<b>" + hhmm(resolution().nextBmp) + "</b>)" : "");
     } else if (ri.ph) phOut = card("ok", "Phosphorus", r1(ri.ph.v), "2 or higher: no phosphorus on the pathway.");
     else phOut = card("info", "Phosphorus", "—", "Enter Phos on the Labs tab.");
     $("outPh").innerHTML = phOut; $("phWhen").innerHTML = phWhen;
+    if (ri.off) {
+      $("outK").innerHTML = card("info", "Drip off", hhmm(ri.off), "The pathway's K, Mg and Phos tables stop with the insulin drip. Replace per the provider's orders.");
+      $("outMg").innerHTML = ""; $("outPh").innerHTML = ""; $("kWhen").innerHTML = ""; $("mgWhen").innerHTML = ""; $("phWhen").innerHTML = "";
+    }
+
+    // ---- Next step: Labs → Lytes (if something needs starting) → Drip
+    var pend = [];
+    if (ri.k && ri.k.n && !ri.k.start) pend.push("KCl × " + ri.k.n);
+    if (ri.mg && ri.mg.m && !ri.mg.start) pend.push("Mg × " + ri.mg.m);
+    if (ri.ph && ri.ph.give && !ri.ph.start) pend.push("K-Phos");
+    $("labNext").innerHTML = !state.labs.length ? "" : pend.length ?
+      '<button type="button" class="btn" data-go="lytes">Next: start ' + esc(pend.join(", ")) + ' on Lytes →</button>' :
+      '<button type="button" class="btn ghost" data-go="drip">Nothing new to start. Back to Drip →</button>';
+    $("lyNext").innerHTML = pend.length ? '<p class="note"><b>Still to start:</b> ' + esc(pend.join(", ")) + '. Enter each start time above.</p><button type="button" class="btn ghost" data-go="drip">Back to Drip →</button>' :
+      '<button type="button" class="btn" data-go="drip">Back to Drip →</button>';
 
     // ---- Labs: preview of what's typed, resolution, sodium, trend table
     var pv = [], pna = num("na"), pcl = num("cl"), phc = num("hco3");
@@ -1122,7 +1188,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     if (S) {
       $("outNa").innerHTML = card(S.level, "Corrected Na", r1(S.now.cna) + (S.trend ? " " + S.trend : ""), "Measured " + S.now.na + " at glucose " + S.now.glu + ". " + S.msg, true);
       S.calls.forEach(function (t) { push("tell", t, "labs"); });
-      if (S.level === "watch") push("watch", "Measured Na not rising as glucose falls", "labs");
+      if (S.level === "watch") task("Measured Na not rising as glucose falls", "labs");
     } else $("outNa").innerHTML = card("info", "Corrected Na", "—", "Enter Na and glucose (lab, or the BG now is used).");
     renderLabLog();
 
@@ -1153,26 +1219,31 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     $("outTrans").innerHTML = tr.join("");
     document.querySelectorAll("[data-diet]").forEach(function (bt) { bt.setAttribute("aria-pressed", bt.getAttribute("data-diet") === state.trans.diet); });
 
-    // ---- Due strip on Home
+    // ---- Due strip (top of Drip). Chips go to the tab where you act on them.
     var due = [];
-    if (state.log.length) { var lr = state.log[0], lt = rowTs(lr); if (lt) { var lowb = +lr.bg < 70; due.push({ t: lowb ? "BG recheck (low)" : "Next BG", ts: lt + (lowb ? 15 : 60) * MIN, tab: "home" }); } }
-    if (R.nextBmp) due.push({ t: "BMP + Mg/Phos", ts: R.nextBmp, tab: "labs" });
+    if (offTs()) due.push({ t: "Drip off " + hhmm(offTs()) + ": BG checks per the post-drip orders", ts: null });
+    else if (state.log.length) { var lr = state.log[0], lt = rowTs(lr); if (lt) { var lowb = +lr.bg < 70; due.push({ t: lowb ? "BG recheck (low)" : "Next BG", ts: lt + (lowb ? 15 : 60) * MIN, tab: "home" }); } }
+    if (offTs()) {}
+    else if (R.nextBmp) due.push({ t: "BMP + Mg/Phos", ts: R.nextBmp, tab: "labs" });
     else if (state.log.length) due.push({ t: "First BMP: enter on Labs", ts: null, urgent: false, tab: "labs" });
     if (ri.k && ri.k.recheck) due.push({ t: ri.k.n === 0 ? "K recheck (K over 5)" : "K recheck (1 h after KCl)", ts: ri.k.recheck, tab: "lytes" });
     if (ri.k && ri.k.n && !ri.k.start && ri.k.v < 3.3) due.push({ t: "K under 3.3: start KCl, insulin held", ts: null, urgent: true, tab: "lytes" });
     if (ri.k && ri.k.done && ri.k.done > Date.now()) due.push({ t: "KCl done", ts: ri.k.done, tab: "lytes", info: true });
     $("dueStrip").innerHTML = due.map(function (d) {
       var cls = "chip", m = "";
-      if (d.ts) { var mins = Math.round((d.ts - Date.now()) / MIN); m = inMin(d.ts); if (!d.info) cls += mins < 0 ? " late" : mins <= 30 ? " soon" : ""; if (mins < 0 && !d.info) push("watch", d.t + " was due " + hhmm(d.ts), d.tab); }
-      if (d.urgent) cls += " urgent";
-      return '<span class="' + cls + '">' + esc(d.t) + (d.ts ? " <b>" + hhmm(d.ts) + '</b><span class="m">' + m + "</span>" : "") + "</span>";
+      if (d.ts) { var mins = Math.round((d.ts - Date.now()) / MIN); m = inMin(d.ts); if (!d.info) { cls += mins < 0 ? " late" : mins <= 30 ? " soon" : ""; if (mins <= 30) task(d.t, "drip"); } }
+      if (d.urgent) { cls += " urgent"; task(d.t, "drip"); }
+      var go = d.tab && d.tab !== "home" ? ' data-go="' + d.tab + '"' : "";
+      return '<button type="button" class="' + cls + '"' + go + '>' + esc(d.t) + (d.ts ? " <b>" + hhmm(d.ts) + '</b><span class="m">' + m + "</span>" : "") + (go ? ' <span class="m">›</span>' : "") + "</button>";
     }).join("");
+    var nb = due.filter(function (d) { return d.t === "Next BG" || d.t === "BG recheck (low)"; })[0];
     $("due").textContent = "";
+    $("due").className = "due" + (nb ? ((nb.ts - Date.now()) / MIN < 0 ? " late" : (nb.ts - Date.now()) / MIN <= 10 ? " soon" : "") : "");
 
     // ---- Act now: BG under 70 or K under 3.3
     var kS = cv("k"), stl = [];
     if (bgN !== null && bgN < 70) stl.push("<dt>BG " + bgN + "</dt><dd>D50 50 mL IV push, call the physician, recheck BG every 15 minutes.</dd>");
-    if (kS !== null && kS < 3.3) stl.push("<dt>K " + r1(kS) + "</dt><dd>Hold insulin. KCl 20 mEq × 4 doses. Insulin waits until K is 3.3 or higher.</dd>");
+    if (kS !== null && kS < 3.3) stl.push("<dt>K " + r1(kS) + "</dt><dd>" + (ri.off ? "Drip is off: call the provider for K replacement." : "Hold insulin. KCl 20 mEq × 4 doses. Insulin waits until K is 3.3 or higher.") + "</dd>");
     $("stopList").innerHTML = stl.join(""); $("stopBox").hidden = !stl.length;
 
     // ---- Prompts + tab dots
@@ -1182,16 +1253,18 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     $("summaryList").innerHTML = flags.length ? flags.map(function (f) {
       return '<li><span class="pill ' + f.level + '">' + LABEL[f.level] + "</span><span>" + esc(f.text) + "</span></li>";
     }).join("") : '<li class="none">Nothing to call about from the numbers entered.</li>';
-    var worst = {};
-    flags.forEach(function (f) { if (f.tab === "home") return; if (f.level === "tell") worst[f.tab] = "tell"; else if (f.level === "watch" && !worst[f.tab]) worst[f.tab] = "watch"; });
+    // Badges count open items; they clear only when the item is handled, not when the tab is opened
+    var cnt = { home: flags.length };
+    flags.forEach(function (f) { if (f.tab !== "home") cnt[f.tab] = (cnt[f.tab] || 0) + 1; });
+    var seenT = {}; tasks.forEach(function (t) { var k = t.tab + "|" + t.text; if (seenT[k]) return; seenT[k] = 1; cnt[t.tab] = (cnt[t.tab] || 0) + 1; });
     document.querySelectorAll("nav.tabs button").forEach(function (bt) {
-      var t = bt.getAttribute("data-tab"), dot = bt.querySelector(".dot");
-      dot.hidden = !worst[t]; dot.className = "dot " + (worst[t] || "");
-      bt.setAttribute("aria-label", bt.textContent.trim() + (worst[t] ? (worst[t] === "tell" ? ", has a call-provider flag" : ", has a watch flag") : ""));
+      var t = bt.getAttribute("data-tab"), dot = bt.querySelector(".dot"), n = cnt[t] || 0;
+      dot.hidden = !n; dot.textContent = n > 9 ? "9+" : String(n); dot.className = "dot";
+      bt.setAttribute("aria-label", t + (n ? ", " + n + " open item" + (n > 1 ? "s" : "") : ""));
     });
 
     if (!$("exampleNote").hidden) return ins;   // don't save the example patient
-    var f = { fluid: state.fluid, phase2: $("phase2").checked }; IDS.forEach(function (id) { f[id] = $(id).value; });
+    var f = { fluid: state.fluid, phase2: $("phase2").checked, edBolus: $("edBolus").checked }; IDS.forEach(function (id) { f[id] = $(id).value; });
     store("dka-fields", f);
     return ins;
   }
@@ -1220,6 +1293,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     LABKEYS.concat(["lt"]).forEach(function (k) { $(k).value = ""; });
     $("exampleNote").hidden = true;
     compute();
+    try { $("labNext").scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) {}
   }
   function undoLabs() {
     var r = state.labs.shift(); if (!r) return; saveLabs();
@@ -1236,11 +1310,11 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
         "</td><td>" + esc(e.nw) + '</td><td class="cm">' + esc(e.ivf) + '</td><td class="cm">' + esc(e.cmt || "") + "</td></tr>";
     }).join("");
     for (var i = 0; i < blanks; i++) tr += '<tr><td></td><td></td><td></td><td></td><td></td><td></td><td class="cs">LR · D5 ½NS · D10 &nbsp;____</td><td></td></tr>';
-    var u0 = insulinUse(Date.now()), f0 = fluidUse(Date.now());
+    var u0 = insulinUse(countTo()), f0 = fluidUse(countTo());
     var p1 = '<div class="pp">' +
       '<div class="phd"><h1>DKA Check · Bedside tracking</h1><div class="wr">Date ' + wi("") + " &nbsp; Room " + wi("", "s") + "</div></div>" +
       '<div class="prates"><span>Weight ' + wi(w !== null ? r1(w) : "", "s") + " kg</span><span>Table row " + wi(b >= 0 ? BANDS[b] + "–" + (BANDS[b] + 9) : "") + " kg</span>" +
-      "<span>LR started " + wi($("ivfStart").value, "s") + "</span><span>K ≥3.3 before insulin: Y · N</span></div>" +
+      "<span>ED 2 L LR bolus: " + ($("edBolus").checked ? "<b>[Y]</b> · N" : "Y · <b>[N]</b>") + "</span><span>LR started " + wi($("ivfStart").value, "s") + "</span><span>K ≥3.3 before insulin: Y · N</span></div>" +
       '<div class="prates"><span>Start (0.1) ' + wi(r10 ? r1(r10.v) : "", "s") + " units/hr</span><span>BG ≤200 (0.05) " + wi(r05 ? r1(r05.v) : "", "s") + " units/hr</span>" +
       "<span>Bolus, only if ordered " + wi(w !== null ? r1(0.15 * w) : "", "s") + " units</span>" +
       "<span>Insulin so far " + wi(u0 ? r1(u0.total) : "", "s") + " units · bag # " + wi(u0 ? u0.bagNo : "", "s") + "</span></div>" +
@@ -1355,22 +1429,22 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
   // ---- Tabs
   var wide = window.matchMedia("(min-width: 900px)");
   function showTab(t) {
-    if (wide.matches && t === "home") t = state.tab !== "home" ? state.tab : "fluids";
+    if (wide.matches && t === "drip") t = state.tab !== "drip" ? state.tab : "home";
     state.tab = t; store("dka-tab", t);
     document.querySelectorAll(".tab").forEach(function (el) {
       var id = el.getAttribute("data-tab"); el.classList.toggle("on", id === t);
     });
     document.querySelectorAll("nav.tabs button").forEach(function (bt) { bt.setAttribute("aria-selected", bt.getAttribute("data-tab") === t); });
   }
-  document.querySelectorAll("nav.tabs button").forEach(function (bt) { bt.addEventListener("click", function () { showTab(bt.getAttribute("data-tab")); window.scrollTo(0, 0); }); });
-  document.addEventListener("click", function (ev) { var g = ev.target.closest && ev.target.closest("[data-go]"); if (g) { showTab(g.getAttribute("data-go")); window.scrollTo(0, 0); } });
+  document.querySelectorAll("nav.tabs button").forEach(function (bt) { bt.addEventListener("click", function () { showTab(bt.getAttribute("data-tab")); $("scroller").scrollTop = 0; }); });
+  document.addEventListener("click", function (ev) { var g = ev.target.closest && ev.target.closest("[data-go]"); if (g) { showTab(g.getAttribute("data-go")); $("scroller").scrollTop = 0; } });
   if (wide.addEventListener) wide.addEventListener("change", function () { showTab(state.tab); });
 
   // ---- Theme
   function setTheme(t) {
-    if (t === "light") document.documentElement.setAttribute("data-theme", "light"); else document.documentElement.removeAttribute("data-theme");
-    $("thDark").setAttribute("aria-pressed", t !== "light"); $("thLight").setAttribute("aria-pressed", t === "light");
-    store("dka-theme", t);
+    if (t === "dark") document.documentElement.setAttribute("data-theme", "dark"); else document.documentElement.removeAttribute("data-theme");
+    $("thDark").setAttribute("aria-pressed", t === "dark"); $("thLight").setAttribute("aria-pressed", t !== "dark");
+    store("dka-theme2", t);
   }
   $("thDark").addEventListener("click", function () { setTheme("dark"); });
   $("thLight").addEventListener("click", function () { setTheme("light"); });
@@ -1387,6 +1461,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
   $("fD5").addEventListener("click", function () { setFluid("D5"); });
   $("fD10").addEventListener("click", function () { setFluid("D10"); });
   $("phase2").addEventListener("change", compute);
+  $("edBolus").addEventListener("change", function () { $("exampleNote").hidden = true; compute(); });
   $("nextBtn").addEventListener("click", nextHour);
   $("undoBtn").addEventListener("click", undo);
   $("logLabBtn").addEventListener("click", logLabs);
@@ -1407,7 +1482,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
   $("outBag").addEventListener("click", function (ev) {
     var act = ev.target.getAttribute && ev.target.getAttribute("data-act"); if (!act) return;
     if (act === "newbag") {
-      var u = insulinUse(Date.now());
+      var u = insulinUse(countTo());
       var old = JSON.parse(JSON.stringify(state.bag)), tEnd = readingTs();
       old.no = old.no || 1; old.ended = tEnd; old.vol = u ? Math.round(insulinUse(tEnd).raw * 10) / 10 : null; if (!old.hung && u && u.start) old.hung = u.start;
       state.bagHist.push(old);
@@ -1478,24 +1553,24 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
   IDS.forEach(function (id) { $(id).addEventListener("input", function () { $("exampleNote").hidden = true; compute(); }); });
   $("clearBtn").addEventListener("click", function () {
     IDS.forEach(function (id) { $(id).value = ""; });
-    $("phase2").checked = false; state.log = []; saveLog(); state.labs = []; saveLabs();
+    $("phase2").checked = false; $("edBolus").checked = true; state.log = []; saveLog(); state.labs = []; saveLabs();
     state.bag = { no: null, hung: null, pump: null }; state.bagHist = []; saveBags(); fillBagFields();
     state.repl = { k: "", mg: "", ph: "" }; store("dka-repl", state.repl); fillRepl();
     state.trans = { basal: "", stop: "", diet: "" }; store("dka-trans", state.trans); fillTrans();
     try { localStorage.removeItem("dka-fields"); } catch (e) {}
     renderLog(); setFluid("LR", true); $("tm").value = ""; $("cmt").value = "";
-    $("exampleNote").hidden = true; compute(); showTab("home"); $("wt").focus();
+    $("exampleNote").hidden = true; compute(); showTab("drip"); $("wt").focus();
   });
 
-  setTheme(load("dka-theme", "dark") === "light" ? "light" : "dark");
+  setTheme(load("dka-theme2", "light") === "dark" ? "dark" : "light");
   var kept = load("dka-fields", null);
   if (kept && (IDS.some(function (id) { return kept[id]; }) || state.log.length || state.labs.length)) {
     IDS.forEach(function (id) { $(id).value = kept[id] || ""; });
-    setFluid(kept.fluid || "LR", true); $("phase2").checked = !!kept.phase2; $("exampleNote").hidden = true;
+    setFluid(kept.fluid || "LR", true); $("phase2").checked = !!kept.phase2; $("edBolus").checked = kept.edBolus !== false; $("exampleNote").hidden = true;
   } else if (state.log.length || state.labs.length) $("exampleNote").hidden = true;
   else Object.keys(EXAMPLE).forEach(function (k) { $(k).value = EXAMPLE[k]; });
   renderLog();
-  showTab(load("dka-tab", "home"));
+  showTab("drip");   // the hourly work starts here
   if (load("dka-unit", "kg") === "lb") setUnit("lb"); else compute();
 })();
 </script>
@@ -1508,7 +1583,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     if (!("serviceWorker" in navigator)) { say("Offline use isn't available in this browser."); return; }
     say("Saving for offline use…");
     navigator.serviceWorker.register("sw.js").then(function () { return navigator.serviceWorker.ready; })
-      .then(function () { return caches.has("dka-check-2026-11-07.2"); })
+      .then(function () { return caches.has("dka-check-2026-11-07.17"); })
       .then(function (ok) { say(ok ? "Ready offline ✓" : "Saving for offline use… reopen the app in a few seconds."); })
       .catch(function () { say("Couldn't save for offline use. Open the app once more while online."); });
   })();
