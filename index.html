@@ -23,7 +23,7 @@
 @font-face { font-family: "IBM Plex Mono"; font-weight: 500; font-style: normal; font-display: swap; src: url("ibm-plex-mono-latin-500-normal.woff2") format("woff2"); }
 @font-face { font-family: "IBM Plex Mono"; font-weight: 600; font-style: normal; font-display: swap; src: url("ibm-plex-mono-latin-600-normal.woff2") format("woff2"); }
 *, *::before, *::after { box-sizing: border-box; }
-body { margin: 0; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; padding-top: env(safe-area-inset-top, 0px); }
 img { max-width: 100%; }
 </style>
 </head>
@@ -300,7 +300,7 @@ table.rates td:last-child { font-family: var(--font-num); text-align: right; }
   #tab-drip { display: grid; grid-column: 1; grid-row: 1; }
   .tab:not(#tab-drip) { grid-column: 2; grid-row: 1; }
   .tab.side { display: grid; }
-  nav.tabs { grid-template-columns: repeat(5, 1fr); max-width: 640px; align-self: center; border-radius: 14px 14px 0 0; border: 1px solid var(--hdr-line); border-bottom: 0; }
+  nav.tabs { grid-template-columns: repeat(5, 1fr); }   /* full width, flush with the bottom edge */
   nav.tabs button[data-tab="drip"] { display: none; }
   table.log { min-width: 0; }
 }
@@ -622,7 +622,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
         <li>Potassium Phosphates Injection, USP [prescribing information]. Amneal Pharmaceuticals; 2024.<span class="use">15 mmol phosphorus carries about 22 mEq potassium</span></li>
       </ol>
     </section>
-    <p class="foot">The flags are prompts, not orders. The provider's orders and the pathway decide what changes. Nothing is sent anywhere. Your numbers stay on this device so a closed app doesn't lose them; Clear wipes them. Version 2026-11-07.17. <span id="offlineState"></span></p>
+    <p class="foot">The flags are prompts, not orders. The provider's orders and the pathway decide what changes. Nothing is sent anywhere. Your numbers stay on this device so a closed app doesn't lose them; Clear wipes them. Version 2026-11-07.18. <span id="offlineState"></span></p>
   </div>
   </div>
 </div>
@@ -1583,7 +1583,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     if (!("serviceWorker" in navigator)) { say("Offline use isn't available in this browser."); return; }
     say("Saving for offline use…");
     navigator.serviceWorker.register("sw.js").then(function () { return navigator.serviceWorker.ready; })
-      .then(function () { return caches.has("dka-check-2026-11-07.17"); })
+      .then(function () { return caches.has("dka-check-2026-11-07.18"); })
       .then(function (ok) { say(ok ? "Ready offline ✓" : "Saving for offline use… reopen the app in a few seconds."); })
       .catch(function () { say("Couldn't save for offline use. Open the app once more while online."); });
   })();
