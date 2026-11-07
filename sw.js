@@ -1,5 +1,5 @@
 // DKA Check offline cache. Change VERSION whenever any file changes, so phones fetch the update.
-const VERSION = "dka-check-2026-11-01.25";
+const VERSION = "dka-check-2026-11-07.2";
 const FILES = [
   "./",
   "index.html",

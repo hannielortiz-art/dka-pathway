@@ -1,8 +1,8 @@
 # DKA Check
 
-A bedside DKA pathway for ICU nurses: weight-based insulin rates, hourly titration, dextrose fluid changes and K, Mg and Phos replacement, with prompts for when to call the provider or pharmacy.
+A bedside DKA pathway for ICU nurses: weight-based insulin rates, hourly titration, dextrose fluid changes, K, Mg and Phos replacement with recheck times, a BMP trend with corrected sodium, and DKA resolution (2 closed gaps in a row) with the switch to SQ insulin. Tabs along the bottom: Home, Fluids, Lytes, Labs, Ref.
 
-The flags are prompts, not orders. The provider's orders and the unit's pathway decide what changes. Nothing typed into the app is saved or sent anywhere.
+The flags are prompts, not orders. The provider's orders and the unit's pathway decide what changes. Nothing is sent anywhere; numbers stay on the device until you tap Clear.
 
 ## Put it online (GitHub Pages, free)
 
@@ -21,12 +21,12 @@ Easiest on a computer.
 
 ## Put it on your computer
 
-The same address works on a computer: a wider screen puts the insulin drip and its log on the left and everything else on the right.
+The same address works on a computer: a wider screen keeps Home on the left and shows the other tabs on the right.
 
 - **Chrome or Edge (Mac or Windows):** open the address, then click the install icon at the right end of the address bar (or menu → **Cast, save and share** → **Install page as app**). It opens in its own window and works offline.
 - **Safari on a Mac:** open the address, then **File** → **Add to Dock**.
 
-The phone and the computer each keep their own log; they don't sync.
+The phone and the computer each keep their own data; they don't sync.
 
 ## Updating it
 
