@@ -51,6 +51,29 @@ img { max-width: 100%; }
   color-scheme: dark;
 }
 
+/* Apple font option (Ref → Display) */
+:root[data-font="apple"] {
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Arial, sans-serif;
+  --font-num: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Arial, sans-serif;
+}
+:root[data-font="apple"] body, :root[data-font="apple"] input, :root[data-font="apple"] button, :root[data-font="apple"] table { font-variant-numeric: tabular-nums; }
+/* High contrast option */
+:root[data-contrast="high"] {
+  --ink: #000000; --muted: #2B3A4A; --line: #6B7C90; --accent: #002B57; --do: #002B57;
+  --ok: #145C40; --watch: #6B4500; --tell: #8F1B12; --sage: #3F7A63; --field: #FFFFFF;
+}
+:root[data-contrast="high"][data-theme="dark"] {
+  --ink: #FFFFFF; --muted: #D5DFEA; --line: #8FA6C2; --accent: #CFE3FF; --do: #CFE3FF;
+  --ok: #9BF0C2; --watch: #FFD966; --tell: #FFB3AB; --sage: #9BD6BE; --field: #000000; --bg: #000000;
+}
+:root[data-contrast="high"] .summary, :root[data-contrast="high"] section.panel, :root[data-contrast="high"] .chk,
+:root[data-contrast="high"] .field input, :root[data-contrast="high"] .chip, :root[data-contrast="high"] details.box { border-width: 2px; }
+:root[data-contrast="high"] .chk { border-left-width: 6px; }
+:root[data-contrast="high"] .pill { border-width: 2px; }
+:root[data-contrast="high"] nav.tabs button { color: #FFFFFF; }
+/* Text size option: scales the content, not the tab bar */
+.wrap { zoom: var(--zoom, 1); }
 [hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; height: 100%; }
 body { height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
@@ -85,14 +108,16 @@ header.bar button:focus-visible { outline: 3px solid var(--orange); outline-offs
 section.panel, .summary, details.box, .sources { min-width: 0; }
 .tab.on { display: grid; }
 nav.tabs { flex: none; width: 100%; z-index: 25; background: var(--hdr); border-top: 1px solid var(--hdr-line);
-  padding: 4px max(6px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(6px, env(safe-area-inset-left, 0px));
-  display: grid; grid-template-columns: repeat(6, 1fr); }
-nav.tabs button { position: relative; background: transparent; border: 0; color: #B9CDE6; font: 700 11.5px var(--font-body); letter-spacing: .02em;
-  display: grid; justify-items: center; gap: 2px; padding: 6px 2px 7px; min-height: 56px; cursor: pointer; }
-nav.tabs button svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-nav.tabs button[aria-selected="true"] { color: #FFFFFF; }
-nav.tabs button[aria-selected="true"]::after { content: ""; position: absolute; bottom: 3px; width: 5px; height: 5px; border-radius: 50%; background: var(--orange); }
-nav.tabs button:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; border-radius: 10px; }
+  /* a little less than the full home-indicator inset, so the icons sit visually centered in the bar */
+  padding: 6px max(6px, env(safe-area-inset-right, 0px)) max(6px, calc(env(safe-area-inset-bottom, 0px) - 12px)) max(6px, env(safe-area-inset-left, 0px));
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+nav.tabs button { position: relative; background: transparent; border: 0; border-radius: 12px; color: #B9CDE6; font: 700 11.5px var(--font-body); letter-spacing: .02em;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 3px; padding: 7px 2px 6px; min-height: 58px; cursor: pointer;
+  transition: background-color .15s ease, color .15s ease; }
+nav.tabs button svg { display: block; width: 27px; height: 27px; fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
+/* Selected tab: the whole tab lightens instead of a dot */
+nav.tabs button[aria-selected="true"] { color: #FFFFFF; background: rgba(255, 255, 255, .16); }
+nav.tabs button:focus-visible { outline: 3px solid var(--orange); outline-offset: -3px; }
 nav.tabs .dot { position: absolute; top: 2px; left: calc(50% + 5px); min-width: 19px; height: 19px; padding: 0 5px; box-sizing: border-box; border-radius: 10px; border: 2px solid var(--hdr);
   background: #E5352B; color: #FFFFFF; font: 700 11px/15px var(--font-body); text-align: center; }
 
@@ -359,7 +384,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
   <div class="top">
     <header class="bar">
       <img src="apple-touch-icon.png" alt="">
-      <div><h1>DKA Check</h1><p>Reston DKA ICU pathway</p></div>
+      <div><h1>DKA Check</h1><p>ICU DKA pathway</p></div>
       <span class="spacer"></span>
       <button type="button" id="printBtn">Print</button>
       <button type="button" id="clearBtn">Clear</button>
@@ -548,15 +573,24 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
       <div class="inline"><span class="seg" role="group" aria-label="Color mode">
         <button type="button" id="thLight" aria-pressed="true">Light</button><button type="button" id="thDark" aria-pressed="false">Dark</button></span>
         <span class="note">Light reads more accurately, even at night; Dark is there if you prefer it.</span></div>
+      <div class="inline"><span class="seg" role="group" aria-label="Font">
+        <button type="button" id="fnClassic" aria-pressed="true">Classic</button><button type="button" id="fnApple" aria-pressed="false">Apple</button></span>
+        <span class="note">Classic: fonts built for legibility. Apple: the iPhone's own font.</span></div>
+      <div class="inline"><span class="seg" role="group" aria-label="Text size">
+        <button type="button" id="szDown" aria-label="Smaller text">A−</button><button type="button" id="szReset" aria-label="Normal text size">A</button><button type="button" id="szUp" aria-label="Larger text">A+</button></span>
+        <span class="note" id="szNote">100%</span></div>
+      <div class="inline"><span class="seg" role="group" aria-label="Contrast">
+        <button type="button" id="ctStd" aria-pressed="true">Standard</button><button type="button" id="ctHigh" aria-pressed="false">High contrast</button></span>
+        <span class="note">Darker text, thicker borders, deeper label colors.</span></div>
     </section>
 
     <details class="box" open>
       <summary>Resolution and the switch to SQ insulin</summary>
       <div class="boxbody">
         <p><b>Resolved (this app):</b> 2 closed gaps (12 or less) on consecutive BMPs, plus BG under 200, plus HCO₃ 15 or higher or venous pH above 7.3. The 2-gap rule is the unit's (clinical educator); the rest is the 2009 ADA criteria.</p>
-        <p><b>Gap = Na − (Cl + HCO₃).</b> If Expanse reports the gap, use the lab's number and its normal range.</p>
+        <p><b>Gap = Na − (Cl + HCO₃).</b> If the EHR reports the gap, use the lab's number and its normal range.</p>
         <p><b>The switch (2024 consensus):</b> start a basal-bolus regimen and give the basal insulin at least 1–2 hours before the drip stops. Without that overlap, DKA can come back within hours. Insulin-naive: about 0.3–0.6 units/kg/day total. Already on basal at home: the usual dose can continue, even while the drip runs. The provider orders the doses.</p>
-        <p><b>The pathway</b> keeps the 0.05 rate "until converting to subcutaneous insulin" and gives no more detail. Ask whether a newer order set is in Expanse.</p>
+        <p><b>The pathway</b> keeps the 0.05 rate "until converting to subcutaneous insulin" and gives no more detail. Ask whether a newer order set is in the EHR.</p>
         <p><b>Corrected sodium:</b> high glucose pulls water out of cells and dilutes sodium (pseudohyponatremia). As BG falls, measured Na should rise. The app uses Katz (+1.6 per 100 mg/dL); some use 2.4 when glucose is over 400. Sodium should change no more than 10 in 24 hours.</p>
       </div>
     </details>
@@ -614,7 +648,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
       <h2 id="h-src">Sources</h2>
       <p class="note">Last reviewed November 7, 2026.</p>
       <ol>
-        <li>Reston Hospital Center, Department of Pharmacy. DKA ICU Pathway. 4 pages. Last updated September 22, 2021.<span class="use">Every rate, threshold and table for insulin, fluids and replacement</span></li>
+        <li>Hospital Department of Pharmacy. DKA ICU Pathway. 4 pages. Last updated September 22, 2021.<span class="use">Every rate, threshold and table for insulin, fluids and replacement</span></li>
         <li>Umpierrez GE, Davis GM, ElSayed NA, et al. Hyperglycemic crises in adults with diabetes: a consensus report. <i>Diabetes Care</i>. 2024;47(8):1257-1275. <a href="https://doi.org/10.2337/dci24-0032" target="_blank" rel="noopener">doi:10.2337/dci24-0032</a><span class="use">Basal-bolus transition and overlap, sodium and glucose fall limits, where the pathway differs</span></li>
         <li>Kitabchi AE, Umpierrez GE, Miles JM, Fisher JN. Hyperglycemic crises in adult patients with diabetes. <i>Diabetes Care</i>. 2009;32(7):1335-1343. <a href="https://doi.org/10.2337/dc09-9032" target="_blank" rel="noopener">doi:10.2337/dc09-9032</a><span class="use">Resolution: BG under 200 plus gap ≤12, HCO₃ ≥15, venous pH above 7.3; corrected sodium (1.6)</span></li>
         <li>Rodriguez Alvarez P, San Martin VT, Morey-Vargas OL. Hyperglycemic crises in adults: a look at the 2024 consensus report. <i>Cleve Clin J Med</i>. 2025;92(3):152-158. <a href="https://doi.org/10.3949/ccjm.92a.24089" target="_blank" rel="noopener">doi:10.3949/ccjm.92a.24089</a><span class="use">Summary of the consensus numbers used here</span></li>
@@ -622,7 +656,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
         <li>Potassium Phosphates Injection, USP [prescribing information]. Amneal Pharmaceuticals; 2024.<span class="use">15 mmol phosphorus carries about 22 mEq potassium</span></li>
       </ol>
     </section>
-    <p class="foot">The flags are prompts, not orders. The provider's orders and the pathway decide what changes. Nothing is sent anywhere. Your numbers stay on this device so a closed app doesn't lose them; Clear wipes them. Version 2026-11-07.18. <span id="offlineState"></span></p>
+    <p class="foot">The flags are prompts, not orders. The provider's orders and the pathway decide what changes. Nothing is sent anywhere. Your numbers stay on this device so a closed app doesn't lose them; Clear wipes them. Version 2026-11-07.20. <span id="offlineState"></span></p>
   </div>
   </div>
 </div>
@@ -1327,7 +1361,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
       "</div>" +
       '<table class="pt"><colgroup><col style="width:7%"><col style="width:7%"><col style="width:8%"><col style="width:9%"><col style="width:9%"><col style="width:9%"><col style="width:24%"><col style="width:27%"></colgroup>' +
       "<thead><tr><th>Date</th><th>Time</th><th>BG<br>mg/dL</th><th>Change from last</th><th>Current units/hr</th><th>New units/hr</th><th>IVF (circle) and mL/hr</th><th>Comments</th></tr></thead><tbody>" + tr + "</tbody></table>" +
-      '<p class="pfoot">Prompts, not orders: the provider\'s orders and the Reston DKA ICU Pathway (Pharmacy, 9/22/21) decide. No names or MRNs on this sheet.</p></div>';
+      '<p class="pfoot">Prompts, not orders: the provider\'s orders and the hospital\'s DKA ICU pathway (Pharmacy, 9/22/21) decide. No names or MRNs on this sheet.</p></div>';
     var labs = state.labs.slice(0, 8).reverse(), labRows = labs.map(function (r) {
       var g = gapOf(r), c = cnaOf(r.na, r.glu), f = function (v) { return v == null ? "" : r1(v); };
       return "<tr><td>" + hhmm(r.ts) + "</td><td>" + f(r.glu) + "</td><td>" + f(r.na) + "</td><td>" + (c === null ? "" : r1(c)) + "</td><td>" + f(r.cl) + "</td><td>" + f(r.hco3) + "</td><td>" + (g === null ? "" : r1(g)) +
@@ -1447,6 +1481,27 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     store("dka-theme2", t);
   }
   $("thDark").addEventListener("click", function () { setTheme("dark"); });
+  function setFont(f) {
+    if (f === "apple") document.documentElement.setAttribute("data-font", "apple"); else document.documentElement.removeAttribute("data-font");
+    $("fnApple").setAttribute("aria-pressed", f === "apple"); $("fnClassic").setAttribute("aria-pressed", f !== "apple"); store("dka-font", f);
+  }
+  $("fnClassic").addEventListener("click", function () { setFont("classic"); });
+  $("fnApple").addEventListener("click", function () { setFont("apple"); });
+  var SIZES = [0.85, 1, 1.15, 1.3, 1.45];
+  function setSize(z) {
+    z = SIZES.indexOf(z) < 0 ? 1 : z;
+    document.documentElement.style.setProperty("--zoom", z); $("szNote").textContent = Math.round(z * 100) + "%";
+    $("szDown").disabled = z === SIZES[0]; $("szUp").disabled = z === SIZES[SIZES.length - 1]; store("dka-size", z);
+  }
+  $("szDown").addEventListener("click", function () { var i = SIZES.indexOf(load("dka-size", 1)); setSize(SIZES[Math.max(0, i - 1)]); });
+  $("szUp").addEventListener("click", function () { var i = SIZES.indexOf(load("dka-size", 1)); setSize(SIZES[Math.min(SIZES.length - 1, i + 1)]); });
+  $("szReset").addEventListener("click", function () { setSize(1); });
+  function setContrast(c) {
+    if (c === "high") document.documentElement.setAttribute("data-contrast", "high"); else document.documentElement.removeAttribute("data-contrast");
+    $("ctHigh").setAttribute("aria-pressed", c === "high"); $("ctStd").setAttribute("aria-pressed", c !== "high"); store("dka-contrast", c);
+  }
+  $("ctStd").addEventListener("click", function () { setContrast("standard"); });
+  $("ctHigh").addEventListener("click", function () { setContrast("high"); });
   $("thLight").addEventListener("click", function () { setTheme("light"); });
 
   // Rate tables
@@ -1563,6 +1618,12 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
   });
 
   setTheme(load("dka-theme2", "light") === "dark" ? "dark" : "light");
+  setFont(load("dka-font", "classic"));
+  setSize(load("dka-size", 1));
+  // High contrast follows the phone's Increase Contrast setting until you pick one here
+  var ctSaved = load("dka-contrast", null), ctAuto = false;
+  try { ctAuto = window.matchMedia("(prefers-contrast: more)").matches; } catch (e) {}
+  setContrast(ctSaved || (ctAuto ? "high" : "standard")); if (!ctSaved) { try { localStorage.removeItem("dka-contrast"); } catch (e) {} }
   var kept = load("dka-fields", null);
   if (kept && (IDS.some(function (id) { return kept[id]; }) || state.log.length || state.labs.length)) {
     IDS.forEach(function (id) { $(id).value = kept[id] || ""; });
@@ -1583,7 +1644,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     if (!("serviceWorker" in navigator)) { say("Offline use isn't available in this browser."); return; }
     say("Saving for offline use…");
     navigator.serviceWorker.register("sw.js").then(function () { return navigator.serviceWorker.ready; })
-      .then(function () { return caches.has("dka-check-2026-11-07.18"); })
+      .then(function () { return caches.has("dka-check-2026-11-07.20"); })
       .then(function (ok) { say(ok ? "Ready offline ✓" : "Saving for offline use… reopen the app in a few seconds."); })
       .catch(function () { say("Couldn't save for offline use. Open the app once more while online."); });
   })();
