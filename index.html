@@ -107,8 +107,8 @@ header.bar button:focus-visible { outline: 3px solid var(--orange); outline-offs
 section.panel, .summary, details.box, .sources { min-width: 0; }
 .tab.on { display: grid; }
 nav.tabs { flex: none; width: 100%; z-index: 25; background: var(--hdr); border-top: 1px solid var(--hdr-line);
-  /* a little less than the full home-indicator inset, so the icons sit visually centered in the bar */
-  padding: 6px max(6px, env(safe-area-inset-right, 0px)) max(6px, calc(env(safe-area-inset-bottom, 0px) - 12px)) max(6px, env(safe-area-inset-left, 0px));
+  /* Side and bottom space keep the highlighted tab clear of the iPhone's rounded screen corners */
+  padding: 6px max(14px, env(safe-area-inset-right, 0px)) max(6px, calc(env(safe-area-inset-bottom, 0px) - 6px)) max(14px, env(safe-area-inset-left, 0px));
   display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
 nav.tabs button { position: relative; background: transparent; border: 0; border-radius: 12px; color: #B9CDE6; font: 700 11.5px var(--font-body); letter-spacing: .02em;
   display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 3px; padding: 7px 2px 6px; min-height: 58px; cursor: pointer;
@@ -653,7 +653,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
         <li>Potassium Phosphates Injection, USP [prescribing information]. Amneal Pharmaceuticals; 2024.<span class="use">15 mmol phosphorus carries about 22 mEq potassium</span></li>
       </ol>
     </section>
-    <p class="foot">The flags are prompts, not orders. The provider's orders and the pathway decide what changes. Nothing is sent anywhere. Your numbers stay on this device so a closed app doesn't lose them; Clear wipes them. Version 2026-11-08.22. <span id="offlineState"></span><br>© 2026 Hanniel G. Ortiz. All rights reserved.</p>
+    <p class="foot">The flags are prompts, not orders. The provider's orders and the pathway decide what changes. Nothing is sent anywhere. Your numbers stay on this device so a closed app doesn't lose them; Clear wipes them. Version 2026-11-09.1. <span id="offlineState"></span><br>© 2026 Hanniel G. Ortiz. All rights reserved.</p>
   </div>
   </div>
 </div>
@@ -1641,7 +1641,7 @@ body.previewing #printSheet .pp { width: 7.6in; box-sizing: content-box; margin:
     if (!("serviceWorker" in navigator)) { say("Offline use isn't available in this browser."); return; }
     say("Saving for offline use…");
     navigator.serviceWorker.register("sw.js").then(function () { return navigator.serviceWorker.ready; })
-      .then(function () { return caches.has("dka-check-2026-11-08.22"); })
+      .then(function () { return caches.has("dka-check-2026-11-09.1"); })
       .then(function (ok) { say(ok ? "Ready offline ✓" : "Saving for offline use… reopen the app in a few seconds."); })
       .catch(function () { say("Couldn't save for offline use. Open the app once more while online."); });
   })();
